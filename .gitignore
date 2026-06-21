@@ -1,0 +1,7 @@
+.DS_Store
+data/
+node_modules/
+.playwright-mcp/
+uploads/
+screenshots/
+.thumbnail

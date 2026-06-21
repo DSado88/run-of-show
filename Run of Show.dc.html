@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Run of Show</title>
+<meta name="theme-color" content="#0c1733">
+<link rel="icon" type="image/png" sizes="32x32" href="./icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./icon-16.png">
+<link rel="icon" type="image/png" sizes="48x48" href="./icon-48.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+<link rel="manifest" href="./site.webmanifest">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:#faf9f8;color:#242424;-webkit-font-smoothing:antialiased;}
+  input{font-family:inherit;}
+  button{font-family:inherit;}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+  @keyframes rosToastUp{from{opacity:0;transform:translate(-50%,12px);}to{opacity:1;transform:translate(-50%,0);}}
+  ::-webkit-scrollbar{width:11px;height:11px;}
+  ::-webkit-scrollbar-thumb{background:#d2cfcc;border-radius:7px;border:2px solid #fff;}
+  ::-webkit-scrollbar-thumb:hover{background:#bdb9b6;}
+  /* schedule rail — crisp icon buttons + calm default state */
+  .ros-ic{width:16px;height:16px;display:block;flex:none;}
+  .ros-iconbtn{display:inline-grid;place-items:center;width:26px;height:26px;border:none;background:none;color:#a8a5a2;border-radius:7px;cursor:pointer;padding:0;flex:none;transition:background .12s,color .12s;}
+  .ros-iconbtn:hover{background:#ece9e7;color:#3b3a39;}
+  .ros-iconbtn.ros-accent{color:#0F6CBD;}
+  .ros-iconbtn.ros-accent:hover{background:#e3effb;color:#0F6CBD;}
+  .ros-iconbtn.ros-danger:hover{background:#fde7ea;color:#c4314b;}
+  .ros-fbtn{width:24px;height:24px;border-radius:6px;}
+  .ros-grip{display:inline-grid;place-items:center;flex:none;}
+  .ros-mi{display:flex;align-items:center;gap:9px;width:100%;padding:7px 9px;border:none;background:none;border-radius:7px;color:#242424;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left;transition:background .12s,color .12s;}
+  .ros-mi:hover{background:#f1efed;}
+  .ros-mi .ros-ic{color:#8a8886;}
+  .ros-mi.ros-danger:hover{background:#fde7ea;color:#c4314b;}
+  .ros-mi.ros-danger:hover .ros-ic{color:#c4314b;}
+  .ros-fbadge{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 6px;border-radius:10px;background:#e2dfdc;color:#6b6967;font-size:10.5px;font-weight:700;flex:none;}
+  .ros-resize{position:absolute;top:0;right:-3px;bottom:0;width:7px;cursor:col-resize;z-index:7;}
+  .ros-resize::after{content:"";position:absolute;top:0;bottom:0;right:3px;width:2px;background:transparent;transition:background .12s;}
+  .ros-resize:hover::after{background:#0F6CBD;}
+  .ros-setrow{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid #f1efed;}
+  .ros-setlabel{font-size:13px;font-weight:600;color:#242424;}
+  .ros-setsub{font-size:11.5px;color:#9b9896;font-weight:500;margin-top:2px;max-width:240px;}
+  .ros-databtn{display:inline-flex;align-items:center;gap:7px;border:1px solid #d2cfcc;background:#fff;border-radius:8px;padding:9px 14px;cursor:pointer;color:#242424;font-size:13px;font-weight:600;transition:background .12s;}
+  .ros-databtn:hover{background:#f3f2f1;}
+  @media (hover:hover){
+    .ros-actions,.ros-grip{opacity:0;transition:opacity .12s;}
+    .ros-card:hover .ros-actions,.ros-card:focus-within .ros-actions,
+    .ros-card:hover .ros-grip,
+    .ros-fhdr:hover .ros-actions,.ros-fhdr:focus-within .ros-actions{opacity:1;}
+  }
+</style>
+</helmet>
+<div data-screen-label="Run of Show" style="height:100vh;display:flex;flex-direction:column;background:#faf9f8;overflow:hidden;">
+
+  <!-- TOOLBAR -->
+  <div style="{{ topbarStyle }}">
+    <sc-if value="{{ showRailToggle }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ onToggleRail }}" title="Schedules" style="{{ railToggleStyle }}">☰</button>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="font-weight:700;font-size:16px;letter-spacing:-0.01em;white-space:nowrap;color:#242424;">Run <span style="color:#0F6CBD;">of</span> Show</div>
+    </div>
+    <div style="display:flex;background:#f3f2f1;border-radius:8px;padding:3px;">
+      <button onClick="{{ onModeSchedules }}" style="{{ modeSchedStyle }}">Schedules</button>
+      <button onClick="{{ onModeCalendar }}" style="{{ modeCalStyle }}">Calendar</button>
+    </div>
+    <div style="width:1px;height:24px;background:#edebe9;"></div>
+    <div style="display:flex;align-items:center;background:#f3f2f1;border-radius:8px;padding:3px;">
+      <button onClick="{{ onUndo }}" title="Undo (Cmd/Ctrl+Z)" style="{{ undoBtnStyle }}">↺</button>
+      <button onClick="{{ onRedo }}" title="Redo (Cmd/Ctrl+Shift+Z)" style="{{ redoBtnStyle }}">↻</button>
+    </div>
+    <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ onToday }}" style="padding:6px 14px;border:1px solid #d2cfcc;background:#fff;border-radius:6px;font-size:13px;font-weight:600;color:#242424;cursor:pointer;">Today</button>
+      <div style="display:flex;align-items:center;gap:3px;">
+        <button onClick="{{ onPrev }}" style="width:30px;height:30px;border:1px solid #d2cfcc;background:#fff;border-radius:6px;font-size:16px;color:#616161;cursor:pointer;">‹</button>
+        <button onClick="{{ onNext }}" style="width:30px;height:30px;border:1px solid #d2cfcc;background:#fff;border-radius:6px;font-size:16px;color:#616161;cursor:pointer;">›</button>
+      </div>
+      <div style="font-size:15px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;">{{ rangeLabel }}</div>
+    </sc-if>
+    <sc-if value="{{ isSchedule }}" hint-placeholder-val="{{ false }}">
+      <div style="width:1px;height:24px;background:#edebe9;"></div>
+      <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+        <span style="{{ schedDotStyle }}"></span>
+        <sc-if value="{{ notRenamingTop }}" hint-placeholder-val="{{ true }}"><div onDoubleClick="{{ onStartRenameTop }}" title="Double-click to rename" style="font-size:16px;font-weight:700;letter-spacing:-0.01em;white-space:nowrap;max-width:300px;overflow:hidden;text-overflow:ellipsis;cursor:text;">{{ schedName }}</div></sc-if>
+        <sc-if value="{{ renamingTop }}" hint-placeholder-val="{{ false }}"><input ref="{{ setTopRenameRef }}" value="{{ schedName }}" onInput="{{ onRenameInput }}" onBlur="{{ onRenameDone }}" onKeyDown="{{ onRenameKey }}" style="font-size:16px;font-weight:700;letter-spacing:-0.01em;padding:3px 7px;border:1px solid #0F6CBD;border-radius:6px;outline:none;max-width:300px;"/></sc-if>
+      </div>
+    </sc-if>
+
+    <div style="flex:1;"></div>
+
+    <sc-if value="{{ isSchedule }}" hint-placeholder-val="{{ false }}">
+      <span style="font-size:12.5px;color:#9b9896;font-weight:600;white-space:nowrap;">{{ schedMeta }}</span>
+    </sc-if>
+    <div title="{{ syncTitle }}" style="display:flex;align-items:center;gap:6px;padding:4px 8px;white-space:nowrap;">
+      <div style="{{ syncDotStyle }}"></div>
+      <span style="{{ syncTextStyle }}">{{ syncLabel }}</span>
+    </div>
+
+    <sc-if value="{{ showViewToggle }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;background:#f3f2f1;border-radius:8px;padding:3px;">
+        <button onClick="{{ onSetDay }}" style="{{ dayBtnStyle }}">Day</button>
+        <button onClick="{{ onSetWeek }}" style="{{ weekBtnStyle }}">Week</button>
+      </div>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:3px;">
+      <button onClick="{{ onZoomOut }}" style="width:30px;height:30px;border:1px solid #d2cfcc;background:#fff;border-radius:6px;font-size:17px;color:#616161;cursor:pointer;">−</button>
+      <button onClick="{{ onZoomIn }}" style="width:30px;height:30px;border:1px solid #d2cfcc;background:#fff;border-radius:6px;font-size:15px;color:#616161;cursor:pointer;">＋</button>
+    </div>
+    <button onClick="{{ onOpenSettings }}" title="Settings" style="display:inline-grid;place-items:center;width:32px;height:32px;flex:none;border:1px solid #d2cfcc;background:#fff;border-radius:7px;color:#616161;cursor:pointer;"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+
+    <sc-if value="{{ isSchedule }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ onOpenAssignToolbar }}" style="padding:8px 15px;border:1px solid #0F6CBD;background:#fff;color:#0F6CBD;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Assign to days…</button>
+    </sc-if>
+
+    <div style="position:relative;">
+      <button onClick="{{ onToggleSegMenu }}" style="padding:8px 14px;border:none;background:#0F6CBD;color:#fff;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;">＋ Add block ▾</button>
+      <sc-if value="{{ segMenuOpen }}" hint-placeholder-val="{{ false }}">
+        <div onMouseDown="{{ closeSegMenu }}" style="position:fixed;inset:0;z-index:40;"></div>
+        <div style="position:absolute;top:calc(100% + 8px);right:0;z-index:41;width:270px;background:#fff;border:1px solid #e1dfdd;border-radius:11px;box-shadow:0 14px 38px rgba(0,0,0,.18);padding:13px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#616161;">Add a block</span>
+            <button onClick="{{ onToggleSegEdit }}" style="border:none;background:none;color:#0F6CBD;font-size:12px;font-weight:600;cursor:pointer;padding:2px 4px;">{{ segEditLabel }}</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+            <sc-for list="{{ segList }}" as="s" hint-placeholder-count="8">
+              <div style="position:relative;">
+                <button data-min="{{ s.min }}" onClick="{{ onSegBtn }}" style="{{ s.btnStyle }}">{{ s.label }}<span style="font-size:9px;font-weight:600;opacity:.55;margin-left:1px;">m</span></button>
+                <sc-if value="{{ s.showStar }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-5px;left:-4px;font-size:11px;color:#0F6CBD;pointer-events:none;">★</span></sc-if>
+                <sc-if value="{{ segEdit }}" hint-placeholder-val="{{ false }}"><button data-min="{{ s.min }}" onClick="{{ onRemoveDuration }}" style="position:absolute;top:-7px;right:-6px;width:17px;height:17px;border-radius:50%;border:none;background:#c50f1f;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ segEdit }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:11px;display:flex;gap:6px;align-items:center;">
+              <input value="{{ newDur }}" onInput="{{ onNewDurInput }}" placeholder="minutes" type="number" style="flex:1;min-width:0;padding:7px 9px;border:1px solid #d2cfcc;border-radius:6px;font-size:13px;outline:none;"/>
+              <button onClick="{{ onAddDuration }}" style="padding:7px 13px;border:none;background:#0F6CBD;color:#fff;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">Add</button>
+            </div>
+            <div style="margin-top:9px;font-size:11px;color:#9b9896;line-height:1.45;">Tap a number to mark it the ★ default (double-click on the grid uses it). Remove with the red ✕.</div>
+          </sc-if>
+          <sc-if value="{{ notSegEdit }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top:11px;font-size:11px;color:#9b9896;line-height:1.45;">Drops onto <b style="color:#616161;">{{ activeColLabel }}</b> after the last block — then drag it anywhere.</div>
+          </sc-if>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- MULTI-SELECT / CLIPBOARD BAR -->
+  <sc-if value="{{ showMultiBar }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:13px;padding:8px 16px;background:#eef6ff;border-bottom:1px solid #d6e6f5;flex:none;flex-wrap:wrap;">
+      <sc-if value="{{ multiActive }}" hint-placeholder-val="{{ true }}">
+        <span style="font-size:13px;font-weight:700;color:#0F6CBD;">{{ multiCount }} blocks selected</span>
+        <button onClick="{{ onCopySel }}" style="padding:6px 13px;border:1px solid #0F6CBD;background:#0F6CBD;color:#fff;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">Copy ⌘C</button>
+        <button onClick="{{ onDeleteSel }}" style="padding:6px 13px;border:1px solid #f2c4c8;background:#fff;border-radius:6px;font-size:13px;font-weight:600;color:#c50f1f;cursor:pointer;">Delete</button>
+        <button onClick="{{ onClearMulti }}" style="padding:6px 11px;border:none;background:none;color:#5a7894;font-size:13px;font-weight:600;cursor:pointer;">Clear selection</button>
+        <div style="width:1px;height:20px;background:#cfe0f0;"></div>
+      </sc-if>
+      <sc-if value="{{ hasClipboard }}" hint-placeholder-val="{{ false }}">
+        <span style="font-size:13px;font-weight:600;color:#5a7894;">📋 {{ clipCount }} on clipboard</span>
+        <button onClick="{{ onPasteClip }}" style="padding:6px 13px;border:1px solid #c7d9ea;background:#fff;border-radius:6px;font-size:13px;font-weight:600;color:#0F6CBD;cursor:pointer;">Paste ⌘V</button>
+        <span style="font-size:11.5px;color:#9b9896;">→ drops onto {{ pasteHint }} — navigate to a day first</span>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- INSPECTOR -->
+  <sc-if value="{{ selExists }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:13px;padding:8px 16px;background:#f3f9ff;border-bottom:1px solid #d6e6f5;flex:none;flex-wrap:wrap;">
+      <input ref="{{ setTitleRef }}" value="{{ selTitle }}" onChange="{{ onTitleChange }}" onBlur="{{ onTitleChange }}" placeholder="Name this block…" style="flex:1;min-width:170px;max-width:300px;font-size:14px;font-weight:600;padding:7px 11px;border:1px solid #c7d9ea;border-radius:7px;background:#fff;color:#242424;outline:none;"/>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <button data-dir="-1" onClick="{{ onNudge }}" title="Move earlier" style="width:28px;height:28px;border:1px solid #c7d9ea;background:#fff;border-radius:6px;color:#0F6CBD;font-size:13px;cursor:pointer;">▲</button>
+        <div style="font-size:13px;font-weight:600;min-width:142px;text-align:center;white-space:nowrap;">{{ selTime }}</div>
+        <button data-dir="1" onClick="{{ onNudge }}" title="Move later" style="width:28px;height:28px;border:1px solid #c7d9ea;background:#fff;border-radius:6px;color:#0F6CBD;font-size:13px;cursor:pointer;">▼</button>
+      </div>
+      <div style="font-size:12px;color:#0F6CBD;font-weight:700;background:#e5f1fb;padding:5px 11px;border-radius:20px;white-space:nowrap;">{{ selDur }}</div>
+      <div style="width:1px;height:22px;background:#cfe0f0;"></div>
+      <span style="font-size:11px;color:#5a7894;font-weight:700;text-transform:uppercase;letter-spacing:.03em;">Length</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;max-width:270px;">
+        <sc-for list="{{ segList }}" as="s" hint-placeholder-count="6"><button data-min="{{ s.min }}" onClick="{{ onApplyDuration }}" style="padding:4px 8px;border:1px solid #c7d9ea;background:#fff;border-radius:5px;font-size:11px;font-weight:600;color:#0F6CBD;cursor:pointer;">{{ s.label }}</button></sc-for>
+      </div>
+      <div style="width:1px;height:22px;background:#cfe0f0;"></div>
+      <div style="display:flex;gap:6px;">
+        <sc-for list="{{ colors }}" as="c" hint-placeholder-count="0"><div data-color="{{ c.hex }}" onClick="{{ onColor }}" title="{{ c.title }}" style="{{ c.style }}"></div></sc-for>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="position:relative;">
+        <button onClick="{{ onToggleCopyMenu }}" style="padding:6px 13px;border:1px solid #c7d9ea;background:#fff;border-radius:6px;font-size:13px;font-weight:600;color:#242424;cursor:pointer;white-space:nowrap;">{{ dupBtnLabel }}</button>
+        <sc-if value="{{ copyMenuOpen }}" hint-placeholder-val="{{ false }}">
+          <div onMouseDown="{{ closeCopyMenu }}" style="position:fixed;inset:0;z-index:50;"></div>
+          <div style="position:absolute;top:calc(100% + 8px);right:0;z-index:51;width:230px;background:#fff;border:1px solid #e1dfdd;border-radius:11px;box-shadow:0 14px 38px rgba(0,0,0,.18);padding:11px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#9b9896;margin-bottom:9px;">Duplicate to</div>
+            <button onClick="{{ onDuplicateAfter }}" style="width:100%;text-align:left;padding:8px 11px;border:1px solid #c7d9ea;background:#f3f9ff;border-radius:8px;font-size:13px;font-weight:600;color:#0F6CBD;cursor:pointer;margin-bottom:8px;">Right after this block</button>
+            <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <button data-dir="-1" onClick="{{ onCopyWeekShift }}" style="width:24px;height:24px;border:1px solid #e1dfdd;background:#fff;border-radius:6px;color:#616161;font-size:13px;cursor:pointer;">‹</button>
+                <span style="font-size:12px;font-weight:700;color:#616161;">{{ copyWeekLabel }}</span>
+                <button data-dir="1" onClick="{{ onCopyWeekShift }}" style="width:24px;height:24px;border:1px solid #e1dfdd;background:#fff;border-radius:6px;color:#616161;font-size:13px;cursor:pointer;">›</button>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto;">
+                <sc-for list="{{ copyDays }}" as="cd" hint-placeholder-count="7">
+                  <button data-datekey="{{ cd.dateKey }}" onClick="{{ onCopyToDay }}" style="{{ cd.style }}">
+                    <span style="{{ cd.wdStyle }}">{{ cd.wd }}</span>
+                    <span style="{{ cd.subStyle }}">{{ cd.sub }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+      <button onClick="{{ onDeleteEvent }}" style="padding:6px 13px;border:1px solid #f2c4c8;background:#fff;border-radius:6px;font-size:13px;font-weight:600;color:#c50f1f;cursor:pointer;">Delete</button>
+      <button onClick="{{ onCloseInspector }}" style="width:28px;height:28px;border:none;background:none;color:#5a7894;font-size:15px;cursor:pointer;">✕</button>
+    </div>
+  </sc-if>
+
+  <!-- MAIN -->
+  <div style="flex:1;display:flex;min-height:0;">
+
+    <!-- MOBILE DRAWER SCRIM -->
+    <sc-if value="{{ railOverlayShow }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ onCloseRail }}" style="{{ railOverlayStyle }}"></div>
+    </sc-if>
+
+    <!-- RAIL -->
+    <div style="{{ railStyle }}">
+      <sc-if value="{{ showRailResize }}" hint-placeholder-val="{{ true }}"><div class="ros-resize" onMouseDown="{{ onRailResizeStart }}" title="Drag to resize"></div></sc-if>
+      <div style="padding:15px 16px 9px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#616161;">Schedules</span>
+        <span style="font-size:11px;color:#9b9896;font-weight:600;">{{ schedCount }}</span>
+      </div>
+      <div style="padding:0 11px 9px;display:flex;gap:7px;flex:none;">
+        <button onClick="{{ onNewSchedule }}" style="flex:1;padding:10px;border:1px dashed #d2cfcc;background:#fafafa;border-radius:8px;font-size:13px;font-weight:600;color:#616161;cursor:pointer;">＋ Schedule</button>
+        <button onClick="{{ onNewFolder }}" style="flex:1;padding:10px;border:1px dashed #d2cfcc;background:#fafafa;border-radius:8px;font-size:13px;font-weight:600;color:#616161;cursor:pointer;">＋ Folder</button>
+      </div>
+      <div ref="{{ setRailListRef }}" style="flex:1;overflow-y:auto;padding:0 11px 11px;display:flex;flex-direction:column;gap:7px;">
+        <sc-for list="{{ railItems }}" as="it" hint-placeholder-count="2">
+
+          <sc-if value="{{ it.isFolder }}" hint-placeholder-val="{{ false }}">
+            <div data-folderhdr="{{ it.id }}" class="ros-fhdr" style="{{ it.headerStyle }}">
+              <span data-folder="{{ it.id }}" onClick="{{ onToggleFolder }}" style="display:flex;flex:none;cursor:pointer;color:#8a8886;transform:{{ it.caretRot }};transition:transform .12s;"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+              <span data-folder="{{ it.id }}" onClick="{{ onToggleFolder }}" style="display:flex;flex:none;cursor:pointer;color:#7a7775;"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span>
+              <sc-if value="{{ it.notRenamingF }}" hint-placeholder-val="{{ true }}"><span data-folder="{{ it.id }}" onClick="{{ onToggleFolder }}" style="flex:1;min-width:0;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#444;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span></sc-if>
+              <sc-if value="{{ it.isRenamingF }}" hint-placeholder-val="{{ false }}"><input ref="{{ setFolderRenameRef }}" value="{{ it.name }}" onInput="{{ onRenameFolderInput }}" onBlur="{{ onRenameFolderDone }}" onKeyDown="{{ onRenameFolderKey }}" style="flex:1;min-width:0;font-size:12px;font-weight:700;padding:2px 5px;border:1px solid #0F6CBD;border-radius:4px;outline:none;"/></sc-if>
+              <span class="ros-fbadge" title="schedules in this folder">{{ it.count }}</span>
+              <span class="ros-actions" style="display:flex;gap:1px;flex:none;">
+                <button data-folder="{{ it.id }}" onClick="{{ onStartRenameFolder }}" title="Rename folder" class="ros-iconbtn ros-fbtn"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></button>
+                <button data-folder="{{ it.id }}" onClick="{{ onDeleteFolder }}" title="Delete folder (keeps schedules)" class="ros-iconbtn ros-fbtn ros-danger"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+              </span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ it.isSched }}" hint-placeholder-val="{{ true }}">
+            <div onClick="{{ onSelectSchedule }}" data-sched="{{ it.id }}" data-schedid="{{ it.id }}" class="ros-card" style="{{ it.cardStyle }}">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <sc-if value="{{ it.showHandle }}" hint-placeholder-val="{{ true }}"><span data-sched="{{ it.id }}" onMouseDown="{{ onSchedDragStart }}" title="Drag to reorder or drop into a folder" class="ros-grip" style="{{ it.handleStyle }}"><svg class="ros-ic" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="9" cy="5" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="9" cy="19" r="1.4"/><circle cx="15" cy="5" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="15" cy="19" r="1.4"/></svg></span></sc-if>
+                <span style="{{ it.dotStyle }}"></span>
+                <sc-if value="{{ it.notRenaming }}" hint-placeholder-val="{{ true }}"><span style="font-weight:600;font-size:13.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span></sc-if>
+                <sc-if value="{{ it.isRenaming }}" hint-placeholder-val="{{ false }}"><input ref="{{ setRenameRef }}" value="{{ it.name }}" onInput="{{ onRenameInput }}" onBlur="{{ onRenameDone }}" onKeyDown="{{ onRenameKey }}" style="flex:1;min-width:0;font-size:13.5px;font-weight:600;padding:2px 5px;border:1px solid #0F6CBD;border-radius:4px;outline:none;"/></sc-if>
+                <button data-noselect="" data-sched="{{ it.id }}" onClick="{{ onToggleSchedMenu }}" title="Options" class="ros-iconbtn" style="margin-left:auto;flex:none;"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ it.optRot }};transition:transform .12s;"><path d="m6 9 6 6 6-6"/></svg></button>
+              </div>
+              <sc-if value="{{ it.menuOpen }}" hint-placeholder-val="{{ false }}">
+                <div data-noselect="" style="margin-top:10px;padding-top:9px;border-top:1px solid #ececea;display:flex;flex-direction:column;gap:3px;">
+                  <div style="display:flex;flex-wrap:wrap;gap:7px;padding:2px 1px 8px;">
+                    <sc-for list="{{ it.swatches }}" as="sw" hint-placeholder-count="0"><div data-sched="{{ it.id }}" data-color="{{ sw.hex }}" onClick="{{ onPickSchedColor }}" title="{{ sw.title }}" style="{{ sw.style }}"></div></sc-for>
+                  </div>
+                  <button data-sched="{{ it.id }}" onClick="{{ onAssignCard }}" class="ros-mi"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>Assign to days</button>
+                  <button data-sched="{{ it.id }}" onClick="{{ onStartRename }}" class="ros-mi"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Rename</button>
+                  <button data-sched="{{ it.id }}" onClick="{{ onDuplicateSchedule }}" class="ros-mi"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Duplicate</button>
+                  <sc-if value="{{ it.showMove }}" hint-placeholder-val="{{ false }}">
+                    <button data-sched="{{ it.id }}" onClick="{{ onMoveSchedUp }}" class="ros-mi"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>Move up</button>
+                    <button data-sched="{{ it.id }}" onClick="{{ onMoveSchedDown }}" class="ros-mi"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>Move down</button>
+                    <sc-for list="{{ it.moveTargets }}" as="t" hint-placeholder-count="0"><button data-sched="{{ it.id }}" data-folder="{{ t.fid }}" onClick="{{ onMoveToFolder }}" class="ros-mi"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>{{ t.label }}</button></sc-for>
+                  </sc-if>
+                  <button data-sched="{{ it.id }}" onClick="{{ onDeleteSchedule }}" class="ros-mi ros-danger"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>Delete</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+        </sc-for>
+      </div>
+      <div style="position:relative;border-top:1px solid #edebe9;padding:9px 12px;flex:none;">
+        <button onClick="{{ onToggleTips }}" title="How-to tips" style="display:inline-flex;align-items:center;gap:7px;border:1px solid #edebe9;background:#fff;border-radius:8px;padding:6px 11px;cursor:pointer;color:#616161;font-size:12px;font-weight:600;"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>Tips</button>
+        <sc-if value="{{ tipsOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeTips }}" style="position:fixed;inset:0;z-index:60;"></div>
+          <div style="position:absolute;bottom:calc(100% + 7px);left:11px;right:11px;z-index:61;background:#fff;border:1px solid #e1dfdd;border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.2);padding:13px 15px;">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;color:#0F6CBD;">
+              <svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              <span style="font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;">Tip</span>
+              <span style="margin-left:auto;font-size:11px;color:#9b9896;font-weight:600;">{{ tipNum }} / {{ tipTotal }}</span>
+            </div>
+            <div style="font-size:12.5px;color:#3b3a39;line-height:1.55;min-height:56px;">{{ tipText }}</div>
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:8px;">
+              <button onClick="{{ onPrevTip }}" title="Previous tip" class="ros-iconbtn"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+              <button onClick="{{ onNextTip }}" title="Next tip" style="display:inline-flex;align-items:center;gap:4px;border:1px solid #e1dfdd;background:#fff;border-radius:8px;padding:6px 11px;cursor:pointer;color:#0F6CBD;font-size:12px;font-weight:700;">Next<svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- CALENDAR / EDITOR SURFACE -->
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;background:#fff;">
+      <div ref="{{ setScrollRef }}" style="flex:1;overflow:auto;position:relative;">
+        <div ref="{{ setHeaderRef }}" style="position:sticky;top:0;z-index:15;display:flex;background:#fff;border-bottom:1px solid #edebe9;">
+          <div style="{{ axisSpacerStyle }}"></div>
+          <sc-for list="{{ cols }}" as="d" hint-placeholder-count="1">
+            <div style="{{ d.headStyle }}">
+              <sc-if value="{{ d.head.isSchedule }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:baseline;gap:7px;width:100%;justify-content:flex-start;color:#0F6CBD;">
+                  <span style="font-size:12.5px;font-weight:700;">{{ d.head.schedLabel }}</span>
+                  <span style="font-size:11.5px;color:#9b9896;font-weight:600;">{{ d.head.schedSub }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ d.head.isDate }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:5px;width:100%;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="{{ d.head.numStyle }}">{{ d.head.dayNum }}</span>
+                    <div style="display:flex;flex-direction:column;line-height:1.15;min-width:0;">
+                      <span style="{{ d.head.wdStyle }}">{{ d.head.weekday }}</span>
+                      <sc-if value="{{ d.head.bookedShow }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#9b9896;font-weight:600;white-space:nowrap;">{{ d.head.booked }} planned</span></sc-if>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+                    <sc-for list="{{ d.head.tabs }}" as="t" hint-placeholder-count="0">
+                      <div data-col="{{ t.col }}" data-inst="{{ t.id }}" onClick="{{ onSwitchInstance }}" style="{{ t.style }}">
+                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:88px;">{{ t.name }}</span>
+                        <sc-if value="{{ t.canDelete }}" hint-placeholder-val="{{ false }}"><span data-col="{{ t.col }}" data-inst="{{ t.id }}" onClick="{{ onDeleteInstance }}" style="font-size:10px;opacity:.6;cursor:pointer;padding-left:2px;">✕</span></sc-if>
+                      </div>
+                    </sc-for>
+                    <button data-col="{{ d.head.col }}" onClick="{{ onAddInstance }}" title="Add another plan for this day" style="width:21px;height:21px;border:1px dashed #c7d9ea;background:#fff;border-radius:6px;color:#0F6CBD;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;">＋</button>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="{{ gridStyle }}">
+          <div style="{{ axisColStyle }}">
+            <sc-for list="{{ axisHours }}" as="h" hint-placeholder-count="8">
+              <div style="{{ h.style }}">{{ h.label }}</div>
+            </sc-for>
+          </div>
+          <sc-for list="{{ cols }}" as="d" hint-placeholder-count="1">
+            <div data-datekey="{{ d.key }}" onMouseDown="{{ onColMouseDown }}" onMouseMove="{{ onColMouseMove }}" onMouseLeave="{{ onColMouseLeave }}" onDoubleClick="{{ onColDblClick }}" style="{{ d.colStyle }}">
+              <sc-if value="{{ d.now.show }}" hint-placeholder-val="{{ false }}"><div style="{{ d.now.style }}"></div></sc-if>
+              <sc-if value="{{ d.hover.show }}" hint-placeholder-val="{{ false }}"><div style="{{ d.hover.style }}"><span style="position:absolute;left:0;top:-9px;background:#0F6CBD;color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;white-space:nowrap;">{{ d.hover.label }}</span></div></sc-if>
+              <sc-if value="{{ d.anchor.show }}" hint-placeholder-val="{{ false }}"><div style="{{ d.anchor.style }}"><span style="position:absolute;left:0;top:-9px;background:#0F6CBD;color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;white-space:nowrap;">{{ d.anchor.label }} ↓ shift-click end</span></div></sc-if>
+              <sc-if value="{{ d.preview.show }}" hint-placeholder-val="{{ false }}"><div style="{{ d.preview.style }}">{{ d.preview.label }}</div></sc-if>
+              <sc-for list="{{ d.events }}" as="ev" hint-placeholder-count="0">
+                <div data-evt="{{ ev.id }}" onMouseDown="{{ onEventMouseDown }}" onDoubleClick="{{ onEventDblClick }}" style="{{ ev.style }}">
+                  <div style="{{ ev.topHandleStyle }}" onMouseDown="{{ onResizeTop }}"></div>
+                  <sc-if value="{{ ev.isEditing }}" hint-placeholder-val="{{ false }}">
+                    <div style="height:100%;padding:3px 6px;display:flex;align-items:center;">
+                      <input ref="{{ setInlineRef }}" value="{{ ev.title }}" onInput="{{ onInlineInput }}" onKeyDown="{{ onInlineKey }}" onBlur="{{ onInlineBlur }}" onMouseDown="{{ stopProp }}" placeholder="Name…" style="width:100%;font-size:12px;font-weight:600;padding:2px 5px;border:1px solid rgba(255,255,255,.7);border-radius:4px;background:rgba(255,255,255,.92);outline:none;color:#242424;"/>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ ev.notEditing }}" hint-placeholder-val="{{ true }}">
+                    <div style="{{ ev.contentStyle }}">
+                      <div style="{{ ev.titleStyle }}">{{ ev.titleDisplay }} <span style="font-weight:500;opacity:.6;">({{ ev.minsLabel }})</span></div>
+                      <span style="{{ ev.compactTimeStyle }}">{{ ev.timeShort }}</span>
+                    </div>
+                  </sc-if>
+                  <div style="{{ ev.botHandleStyle }}" onMouseDown="{{ onResizeBot }}"></div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ADD AT TIME -->
+  <sc-if value="{{ quickOpen }}" hint-placeholder-val="{{ false }}">
+    <div onMouseDown="{{ closeQuick }}" style="position:fixed;inset:0;z-index:59;"></div>
+    <div style="{{ quickStyle }}">
+      <div style="font-size:11px;font-weight:700;color:#616161;margin-bottom:8px;white-space:nowrap;">New block at {{ quickTime }}</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">
+        <sc-for list="{{ segList }}" as="s" hint-placeholder-count="8"><button data-min="{{ s.min }}" onClick="{{ onQuickPick }}" style="{{ s.quickStyle }}">{{ s.label }}<span style="font-size:9px;opacity:.55;">m</span></button></sc-for>
+      </div>
+      <div style="margin-top:9px;font-size:11px;color:#9b9896;line-height:1.45;">Or <b style="color:#616161;">drag</b> / <b style="color:#616161;">Shift-click</b> another time for a custom length.</div>
+    </div>
+  </sc-if>
+
+  <!-- ASSIGN POPOVER -->
+  <sc-if value="{{ assignOpen }}" hint-placeholder-val="{{ false }}">
+    <div onMouseDown="{{ closeAssign }}" style="position:fixed;inset:0;z-index:79;background:rgba(20,20,20,.18);"></div>
+    <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:80;width:360px;background:#fff;border:1px solid #e1dfdd;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.28);padding:20px;opacity:1;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#9b9896;margin-bottom:3px;">Assign schedule to days</div>
+      <div style="font-size:17px;font-weight:700;letter-spacing:-0.01em;margin-bottom:14px;display:flex;align-items:center;gap:8px;"><span style="{{ assignDotStyle }}"></span>{{ assignName }}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
+        <button data-dir="-1" onClick="{{ onAssignWeekShift }}" style="width:28px;height:28px;border:1px solid #e1dfdd;background:#fff;border-radius:7px;color:#616161;font-size:14px;cursor:pointer;">‹</button>
+        <span style="font-size:13px;font-weight:700;color:#242424;">{{ assignWeekLabel }}</span>
+        <button data-dir="1" onClick="{{ onAssignWeekShift }}" style="width:28px;height:28px;border:1px solid #e1dfdd;background:#fff;border-radius:7px;color:#616161;font-size:14px;cursor:pointer;">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:13px;">
+        <sc-for list="{{ assignDays }}" as="ad" hint-placeholder-count="7">
+          <div data-datekey="{{ ad.dateKey }}" onClick="{{ onToggleAssignDay }}" style="{{ ad.style }}">
+            <span style="{{ ad.wdStyle }}">{{ ad.wd }}</span>
+            <span style="{{ ad.numStyle }}">{{ ad.num }}</span>
+            <sc-if value="{{ ad.hasPlans }}" hint-placeholder-val="{{ false }}"><span style="width:5px;height:5px;border-radius:50%;background:#9b9896;margin-top:2px;"></span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:7px;margin-bottom:15px;">
+        <button onClick="{{ onAssignWeekdays }}" style="flex:1;padding:7px;border:1px solid #d2cfcc;background:#fff;border-radius:7px;font-size:12px;font-weight:600;color:#242424;cursor:pointer;">Weekdays (Mon–Fri)</button>
+        <button onClick="{{ onAssignClearPick }}" style="padding:7px 13px;border:1px solid #d2cfcc;background:#fff;border-radius:7px;font-size:12px;font-weight:600;color:#616161;cursor:pointer;">Clear</button>
+      </div>
+      <div style="display:flex;gap:9px;justify-content:flex-end;align-items:center;">
+        <button onClick="{{ closeAssign }}" style="padding:9px 15px;border:none;background:none;color:#616161;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
+        <button onClick="{{ onConfirmAssign }}" style="{{ assignConfirmStyle }}">{{ assignConfirmLabel }}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- MOBILE ADD-BLOCK FAB -->
+  <sc-if value="{{ showFab }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ onAddBlockFab }}" title="Add block" style="{{ fabStyle }}">＋</button>
+  </sc-if>
+
+  <!-- TOAST (undo for destructive actions) -->
+  <sc-if value="{{ toastShow }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:6px;background:#242424;color:#fff;padding:9px 10px 9px 16px;border-radius:11px;box-shadow:0 12px 36px rgba(0,0,0,.34);font-size:13.5px;font-weight:600;white-space:nowrap;animation:rosToastUp .16s ease;">
+      <span>{{ toastMsg }}</span>
+      <sc-if value="{{ toastUndoable }}" hint-placeholder-val="{{ true }}"><button onClick="{{ onToastUndo }}" style="border:none;background:none;color:#79b8ff;font-size:13.5px;font-weight:700;cursor:pointer;padding:5px 8px;border-radius:6px;margin-left:6px;">Undo</button></sc-if>
+      <button onClick="{{ onToastDismiss }}" title="Dismiss" style="display:inline-grid;place-items:center;border:none;background:none;color:#b8b8b8;cursor:pointer;padding:5px;border-radius:6px;"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+  </sc-if>
+
+  <!-- SETTINGS -->
+  <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSettings }}" style="position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:190;"></div>
+    <div style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:191;width:min(94vw,460px);max-height:88vh;overflow-y:auto;background:#fff;border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.34);padding:20px 22px;">
+      <div style="display:flex;align-items:center;margin-bottom:6px;">
+        <span style="font-size:17px;font-weight:700;letter-spacing:-.01em;">Settings</span>
+        <button onClick="{{ closeSettings }}" title="Close" style="margin-left:auto;display:inline-grid;place-items:center;border:none;background:none;color:#9b9896;cursor:pointer;padding:5px;border-radius:7px;"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9b9896;margin:14px 0 2px;">Display</div>
+      <div class="ros-setrow">
+        <div><div class="ros-setlabel">Time format</div></div>
+        <div style="display:flex;gap:6px;"><sc-for list="{{ tfOpts }}" as="o" hint-placeholder-count="2"><button data-val="{{ o.v }}" onClick="{{ onSetTimeFormat }}" style="{{ o.style }}">{{ o.l }}</button></sc-for></div>
+      </div>
+      <div class="ros-setrow">
+        <div><div class="ros-setlabel">Week starts on</div></div>
+        <div style="display:flex;gap:6px;"><sc-for list="{{ wsOpts }}" as="o" hint-placeholder-count="2"><button data-val="{{ o.v }}" onClick="{{ onSetWeekStart }}" style="{{ o.style }}">{{ o.l }}</button></sc-for></div>
+      </div>
+      <div class="ros-setrow">
+        <div><div class="ros-setlabel">Day range</div><div class="ros-setsub">First and last hour shown on the timeline.</div></div>
+        <div style="display:flex;align-items:center;gap:7px;flex:none;">
+          <select value="{{ dayStartVal }}" onChange="{{ onSetDayStart }}" style="border:1px solid #d2cfcc;border-radius:7px;padding:7px 8px;font-size:12.5px;font-weight:600;color:#242424;background:#fff;cursor:pointer;"><sc-for list="{{ dayStartOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.val }}">{{ o.label }}</option></sc-for></select>
+          <span style="color:#9b9896;font-size:12px;">to</span>
+          <select value="{{ dayEndVal }}" onChange="{{ onSetDayEnd }}" style="border:1px solid #d2cfcc;border-radius:7px;padding:7px 8px;font-size:12.5px;font-weight:600;color:#242424;background:#fff;cursor:pointer;"><sc-for list="{{ dayEndOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.val }}">{{ o.label }}</option></sc-for></select>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9b9896;margin:16px 0 2px;">Editing</div>
+      <div class="ros-setrow">
+        <div><div class="ros-setlabel">Snap to</div><div class="ros-setsub">Round block times to this interval.</div></div>
+        <div style="display:flex;gap:6px;"><sc-for list="{{ snapOpts }}" as="o" hint-placeholder-count="3"><button data-val="{{ o.v }}" onClick="{{ onSetSnap }}" style="{{ o.style }}">{{ o.l }}</button></sc-for></div>
+      </div>
+      <div class="ros-setrow">
+        <div><div class="ros-setlabel">Default block length</div><div class="ros-setsub">Length for a quick (single-click) block.</div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><sc-for list="{{ durOpts }}" as="o" hint-placeholder-count="5"><button data-val="{{ o.v }}" onClick="{{ onSetDefaultDur }}" style="{{ o.style }}">{{ o.l }}</button></sc-for></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9b9896;margin:16px 0 4px;">Color labels</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <sc-for list="{{ colorRows }}" as="c" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="{{ c.dotStyle }}"></span>
+            <input value="{{ c.label }}" data-hex="{{ c.hex }}" onInput="{{ onSetColorLabel }}" placeholder="Label (optional)" style="flex:1;min-width:0;border:1px solid #e1dfdd;border-radius:7px;padding:7px 10px;font-size:12.5px;outline:none;"/>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9b9896;margin:18px 0 6px;">Data</div>
+      <div style="display:flex;gap:9px;">
+        <button onClick="{{ onExport }}" class="ros-databtn"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>Export</button>
+        <button onClick="{{ onImportClick }}" class="ros-databtn"><svg class="ros-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>Import</button>
+        <input ref="{{ setImportRef }}" type="file" accept="application/json,.json" onChange="{{ onImportFile }}" style="display:none;"/>
+      </div>
+      <div style="font-size:11px;color:#9b9896;margin-top:8px;line-height:1.5;">Export downloads all schedules &amp; settings as a JSON file. Import replaces your current data.</div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;weekStart&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Monday&quot;,&quot;Sunday&quot;],&quot;default&quot;:&quot;Monday&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;timeFormat&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;12-hour&quot;,&quot;24-hour&quot;],&quot;default&quot;:&quot;12-hour&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;snapMinutes&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;5&quot;,&quot;10&quot;,&quot;15&quot;],&quot;default&quot;:&quot;5&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.PALETTE=['#0F6CBD','#107C41','#C50F1F','#8764B8','#CA5010','#986F0B','#038387','#5C5C5C'];
+    this.schedColor=(d)=>{ if(d&&d.color) return d.color; let h=0; const s=(d&&d.id)||''; for(let k=0;k<s.length;k++){ h=(h*31+s.charCodeAt(k))>>>0; } return this.PALETTE[h%this.PALETTE.length]; };
+    this.SCHED='__sched__'; this.GRID_PAD=18;
+    this.TIPS=[
+      'Click a time, then Shift-click another to span a block.',
+      'Drag across times to draw a block — or double-click for a quick one.',
+      'Build a schedule once, then “Assign to days…” to drop it onto any dates.',
+      '⌘/Ctrl-click blocks to multi-select, then ⌘C / ⌘V to copy them across days.',
+      'Drag a block’s top or bottom edge to resize it; drag its middle to move it.',
+      'Give each calendar a color — open its ⌄ options and pick a swatch.',
+      'Group calendars into folders: drag a calendar onto a folder, or drag to reorder.',
+      'Deleted something? Press ⌘Z, or hit Undo in the toast that appears.',
+      'Drag the right edge of the schedules panel to make it wider.',
+      'Double-click the schedule name in the top bar to rename it.',
+      'Switch between Schedules (reusable templates) and Calendar (real dates) up top.',
+      'A single day can hold several plans — add a tab and toggle between them.',
+      'In week view, drag a block sideways to move it to another day.',
+    ];
+    const today=this.ymd(new Date());
+    let init=this.load(today);
+    this.state={
+      mode:init.mode||'schedule', view:init.view||'day', anchorDate:init.anchorDate||today, hourPx:init.hourPx||88, railW:init.railW||248,
+      schedules:init.schedules, selectedScheduleId:init.selectedScheduleId||init.schedules[0].id,
+      days:init.days||{}, folders:init.folders||[], folderMenu:null, schedMenu:null,
+      segments:init.segments||[5,10,15,20,25,30,35,40,45,50,55,60,90], defaultDuration:init.defaultDuration||10,
+      settings:Object.assign({ timeFormat:this.props.timeFormat||'12-hour', weekStart:this.props.weekStart||'Monday', snapMinutes:String(this.props.snapMinutes||'5'), dayStart:300, dayEnd:1320 }, init.settings||{}),
+      colorLabels:init.colorLabels||{},
+      selectedId:null, selectedCol:null, anchorPt:null, hover:null, preview:null, dragId:null,
+      segMenuOpen:false, segEdit:false, newDur:'', renameId:null, editingId:null,
+      quickMenu:null, copyMenuOpen:false, copyWeekBase:null, assign:null,
+      multi:[], clipboard:null, railOpen:false, toast:null, tipsOpen:false, tipIdx:0, settingsOpen:false,
+    };
+    this._mobile=this.isMobileWidth();
+    this._drag=null; this.focusTitle=false; this._renameFocus=false; this._focusInline=false; this._restoring=false;
+    this.history=[this.docSnap(this.state)]; this.histIdx=0;
+  }
+
+  uid(){ return 'e'+Math.random().toString(36).slice(2,9); }
+  ymd(d){ const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+  parse(s){ const a=s.split('-').map(Number); return new Date(a[0],a[1]-1,a[2]); }
+  addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+
+  load(today){
+    const seed=()=>{ const mk=(s,e,t,c)=>({id:this.uid(),start:s,end:e,title:t,color:c}); return {
+      schedules:[
+        {id:this.uid(),name:'Standard Day',blocks:[mk(9*60,9*60+10,'Standup',this.PALETTE[0]),mk(10*60,10*60+45,'Design review',this.PALETTE[1]),mk(12*60+30,13*60,'Lunch',this.PALETTE[5]),mk(14*60,15*60,'Focus block',this.PALETTE[3])]},
+        {id:this.uid(),name:'Focus Day',blocks:[mk(9*60,10*60+30,'Deep work',this.PALETTE[3]),mk(10*60+30,10*60+45,'Break',this.PALETTE[5]),mk(10*60+45,12*60+15,'Deep work',this.PALETTE[3])]},
+      ], days:{}, mode:'schedule', anchorDate:today,
+    }; };
+    try{
+      const v3=localStorage.getItem('runofshow_v3');
+      if(v3){ const d=JSON.parse(v3); if(d&&Array.isArray(d.schedules)&&d.schedules.length) return d; }
+      const v2=localStorage.getItem('runofshow_v2');
+      if(v2){ const d=JSON.parse(v2); if(d&&Array.isArray(d.drafts)&&d.drafts.length){
+        return { schedules:d.drafts.map(dr=>({id:this.uid(),name:dr.name,blocks:(dr.events||[]).map(e=>({id:this.uid(),start:e.start,end:e.end,title:e.title,color:e.color}))})),
+          days:{}, mode:'schedule', anchorDate:today, hourPx:d.hourPx, segments:d.segments, defaultDuration:d.defaultDuration };
+      } }
+    }catch(e){}
+    return seed();
+  }
+  stateBlob(s){ const {mode,view,anchorDate,hourPx,railW,schedules,selectedScheduleId,days,folders,segments,defaultDuration,settings,colorLabels}=s; return JSON.stringify({mode,view,anchorDate,hourPx,railW,schedules,selectedScheduleId,days,folders,segments,defaultDuration,settings,colorLabels}); }
+  // What actually syncs to the Studio: document content only. View state (which schedule
+  // is selected, which folders are open, current mode/date/zoom) stays local so navigation
+  // never triggers a remote save or flashes the "Saving…" badge.
+  syncBlob(s){ const {schedules,days,folders,segments,defaultDuration,settings,colorLabels}=s; const f=(folders||[]).map(({collapsed,...r})=>r); return JSON.stringify({schedules,days,folders:f,segments,defaultDuration,settings,colorLabels}); }
+  save(){ try{ localStorage.setItem('runofshow_v3',this.stateBlob(this.state)); this.remoteSave(this.syncBlob(this.state)); }catch(e){} }
+  // --- responsive / mobile layer ---
+  isMobileWidth(){ return (typeof window!=='undefined') && window.innerWidth<=760; }
+  onViewportResize=()=>{ const m=this.isMobileWidth(); if(m!==this._mobile){ this._mobile=m; if(!m&&this.state.railOpen) this.setState({railOpen:false}); else this.forceUpdate(); } };
+  setRail(open){ this.setState({railOpen:open}); }
+  onToggleRail=()=>this.setState(s=>({railOpen:!s.railOpen}));
+  onRailResizeStart=(e)=>{ e.preventDefault(); e.stopPropagation(); this._railResize={x:e.clientX,w:this.state.railW}; document.body.style.userSelect='none'; document.body.style.cursor='col-resize'; window.addEventListener('mousemove',this.onRailResizeMove); window.addEventListener('mouseup',this.onRailResizeEnd); };
+  onRailResizeMove=(e)=>{ if(!this._railResize) return; const w=Math.max(200,Math.min(480,this._railResize.w+(e.clientX-this._railResize.x))); if(w!==this.state.railW) this.setState({railW:w}); };
+  onRailResizeEnd=()=>{ this._railResize=null; document.body.style.userSelect=''; document.body.style.cursor=''; window.removeEventListener('mousemove',this.onRailResizeMove); window.removeEventListener('mouseup',this.onRailResizeEnd); };
+  onCloseRail=()=>this.setState({railOpen:false});
+  // effective view: phones only ever show a single day (the week grid is too wide)
+  effView(){ return (this.state.mode==='calendar'&&this._mobile)?'day':this.state.view; }
+  // append a block of `min` minutes after the last block on the active column, then open it for naming
+  appendBlock(min){
+    const col=this.state.mode==='schedule'?this.SCHED:this.state.anchorDate;
+    const blocks=this.colBlocks(col);
+    let place=blocks.length?Math.max.apply(null,blocks.map(b=>b.end)):9*60; place=this.clampMin(place);
+    this.createRange(col,place,this.clampMin(place+min));
+    requestAnimationFrame(()=>{ if(this.scrollEl){ const top=this.GRID_PAD+(place-this.DAY_START)*this.pxPerMin-100; this.scrollEl.scrollTo({top:Math.max(0,top),behavior:'smooth'}); } });
+  }
+  onAddBlockFab=()=>{ this.appendBlock(this.state.defaultDuration); };
+
+  isRemote(){ return location.protocol==='http:'||location.protocol==='https:'; }
+  setSync(s){ if(this._sync===s) return; this._sync=s; this.forceUpdate(); }
+  remoteSave(body){ if(!this.isRemote()) return; if(body===this._lastSent){ this.setSync('saved'); return; } if(body===this._queued) return; this._queued=body; this.flushSave(); }
+  flushSave(){ this.setSync('saving'); clearTimeout(this._rsT); this._rsT=setTimeout(()=>{ const payload=this._queued; const hdr={'Content-Type':'application/json'}; if(this._rev!=null) hdr['X-Base-Rev']=String(this._rev); fetch('api/state',{method:'PUT',headers:hdr,body:payload}).then(r=>{ if(r.status===409){ return r.json().then(srv=>this.applyServerState(srv,true)); } if(r.ok){ return r.json().then(j=>{ this._rev=j._rev; this._lastSent=payload; this.setSync(this._queued===payload?'saved':'saving'); if(this._queued!==payload) this.flushSave(); }); } this.onSaveFail(); }).catch(()=>this.onSaveFail()); },600); }
+  onSaveFail(){ this.setSync('offline'); clearTimeout(this._retryT); this._retryT=setTimeout(()=>{ if(this._queued!==this._lastSent) this.flushSave(); },4000); }
+  // adopt the server's copy as truth (on load, or when our save was rejected as stale)
+  applyServerState(d,dropPending){ if(!(d&&Array.isArray(d.schedules)&&d.schedules.length)){ this.setSync('offline'); return; } if(dropPending) this._queued=null; this._rev=(d._rev!=null?d._rev:this._rev); this._lastSent=this.syncBlob(d); this._restoring=true; this.setState({...d,selectedId:null,editingId:null,anchorPt:null,preview:null},()=>{ this._restoring=false; this.history=[this.docSnap(this.state)]; this.histIdx=0; this.setSync('saved'); }); }
+  remoteLoad(){ if(!this.isRemote()){ this._sync='local'; return; } this.setSync('saving'); fetch('api/state').then(r=>{ if(r.ok) return r.json(); if(r.status===404){ this.setSync('saved'); return null; } throw new Error('bad'); }).then(d=>{ if(d&&Array.isArray(d.schedules)&&d.schedules.length){ this.applyServerState(d,false); } }).catch(()=>this.setSync('offline')); }
+  docSnap(s){ return JSON.stringify({schedules:s.schedules, days:s.days, folders:s.folders}); }
+  componentDidUpdate(){ this.save(); if(this._restoring) return; const snap=this.docSnap(this.state); if(snap!==this.history[this.histIdx]){ this.history=this.history.slice(0,this.histIdx+1); this.history.push(snap); this.histIdx=this.history.length-1; if(this.history.length>120){ this.history.shift(); this.histIdx--; } } }
+  applyDoc(snap){ const d=JSON.parse(snap); this._restoring=true; this.setState({schedules:d.schedules, days:d.days, folders:d.folders||[], selectedId:null, editingId:null, anchorPt:null, preview:null}, ()=>{ this._restoring=false; }); }
+  undo=()=>{ if(this.histIdx>0){ this.histIdx--; this.applyDoc(this.history[this.histIdx]); } };
+  redo=()=>{ if(this.histIdx<this.history.length-1){ this.histIdx++; this.applyDoc(this.history[this.histIdx]); } };
+  showToast(msg,undoable){ clearTimeout(this._toastT); this.setState({toast:{msg,undoable:!!undoable}}); this._toastT=setTimeout(()=>this.setState({toast:null}),6000); }
+  onToastUndo=()=>{ clearTimeout(this._toastT); this.setState({toast:null}); this.undo(); };
+  onToastDismiss=()=>{ clearTimeout(this._toastT); this.setState({toast:null}); };
+  onToggleTips=()=>this.setState(s=>({tipsOpen:!s.tipsOpen, tipIdx:(!s.tipsOpen)?((s.tipIdx+1)%this.TIPS.length):s.tipIdx}));
+  closeTips=()=>this.setState({tipsOpen:false});
+  onNextTip=()=>this.setState(s=>({tipIdx:(s.tipIdx+1)%this.TIPS.length}));
+  onPrevTip=()=>this.setState(s=>({tipIdx:(s.tipIdx-1+this.TIPS.length)%this.TIPS.length}));
+  onOpenSettings=()=>this.setState({settingsOpen:true});
+  closeSettings=()=>this.setState({settingsOpen:false});
+  setSetting(key,val){ this.setState(s=>({settings:{...s.settings,[key]:val}})); }
+  onSetTimeFormat=(e)=>this.setSetting('timeFormat',e.currentTarget.dataset.val);
+  onSetWeekStart=(e)=>this.setSetting('weekStart',e.currentTarget.dataset.val);
+  onSetSnap=(e)=>this.setSetting('snapMinutes',e.currentTarget.dataset.val);
+  onSetDefaultDur=(e)=>this.setState({defaultDuration:parseInt(e.currentTarget.dataset.val,10)});
+  onSetDayStart=(e)=>{ const v=parseInt(e.target.value,10); this.setState(s=>({settings:{...s.settings,dayStart:Math.min(v,s.settings.dayEnd-60)}})); };
+  onSetDayEnd=(e)=>{ const v=parseInt(e.target.value,10); this.setState(s=>({settings:{...s.settings,dayEnd:Math.max(v,s.settings.dayStart+60)}})); };
+  onSetColorLabel=(e)=>{ const hex=e.currentTarget.dataset.hex; const v=e.target.value; this.setState(s=>({colorLabels:{...s.colorLabels,[hex]:v}})); };
+  onExport=()=>{ try{ const data=this.stateBlob(this.state); const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='run-of-show-'+this.ymd(new Date())+'.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500); this.showToast('Exported to file',false); }catch(e){ this.showToast('Export failed',false); } };
+  setImportRef=(el)=>{ this._importInput=el; };
+  onImportClick=()=>{ if(this._importInput) this._importInput.click(); };
+  onImportFile=(e)=>{ const file=e.target.files&&e.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=()=>{ try{ const d=JSON.parse(reader.result); if(!(d&&Array.isArray(d.schedules)&&d.schedules.length)){ this.showToast('Invalid file — no schedules found',false); } else { this._restoring=true; this.setState({ schedules:d.schedules, days:d.days||{}, folders:d.folders||[], segments:d.segments||this.state.segments, defaultDuration:d.defaultDuration||this.state.defaultDuration, settings:Object.assign({},this.state.settings,d.settings||{}), colorLabels:d.colorLabels||{}, selectedScheduleId:d.selectedScheduleId||d.schedules[0].id, selectedId:null, editingId:null, settingsOpen:false }, ()=>{ this._restoring=false; this.history=[this.docSnap(this.state)]; this.histIdx=0; this.showToast('Imported '+d.schedules.length+' schedules',false); }); } }catch(err){ this.showToast('Could not read that file',false); } if(this._importInput) this._importInput.value=''; }; reader.readAsText(file); };
+
+  componentDidMount(){
+    window.addEventListener('keydown',this.onKey);
+    window.addEventListener('resize',this.onViewportResize);
+    this.tick=setInterval(()=>this.forceUpdate(),60000);
+    if(this.scrollEl){ this.scrollEl.scrollTop=Math.max(0,this.GRID_PAD+(8*60-this.DAY_START)*this.pxPerMin-12); }
+    this.remoteLoad();
+  }
+  componentWillUnmount(){ window.removeEventListener('keydown',this.onKey); window.removeEventListener('resize',this.onViewportResize); clearInterval(this.tick); this.rmWin(); }
+
+  setScrollRef=(el)=>{ this.scrollEl=el; };
+  setHeaderRef=(el)=>{ this.headerEl=el; };
+  setTitleRef=(el)=>{ this.titleEl=el; if(el&&this.focusTitle){ this.focusTitle=false; requestAnimationFrame(()=>{ try{ el.focus(); el.select&&el.select(); }catch(e){} }); } };
+  setRenameRef=(el)=>{ if(el&&this._renameFocus){ this._renameFocus=false; requestAnimationFrame(()=>{ try{ el.focus(); el.select&&el.select(); }catch(e){} }); } };
+  setInlineRef=(el)=>{ if(el&&this._focusInline){ this._focusInline=false; const f=()=>{ try{ el.focus(); el.select&&el.select(); }catch(e){} }; requestAnimationFrame(f); setTimeout(f,50); } };
+  stopProp=(e)=>{ e.stopPropagation(); };
+
+  get pxPerMin(){ return this.state.hourPx/60; }
+  get DAY_START(){ const s=this.state&&this.state.settings; return (s&&s.dayStart)||300; }
+  get DAY_END(){ const s=this.state&&this.state.settings; return (s&&s.dayEnd)||1320; }
+  tf(){ const s=this.state&&this.state.settings; return (s&&s.timeFormat)||this.props.timeFormat||'12-hour'; }
+  ws(){ const s=this.state&&this.state.settings; return (s&&s.weekStart)||this.props.weekStart||'Monday'; }
+  snapStep(){ const s=this.state&&this.state.settings; return parseInt((s&&s.snapMinutes)||this.props.snapMinutes,10)||5; }
+  snap(m){ const s=this.snapStep(); return Math.round(m/s)*s; }
+  clampMin(m){ return Math.max(this.DAY_START, Math.min(this.DAY_END, m)); }
+  selSchedule(){ return this.state.schedules.find(s=>s.id===this.state.selectedScheduleId)||this.state.schedules[0]; }
+
+  activeInstance(day){ if(!day) return null; return day.instances.find(i=>i.id===day.activeId)||day.instances[0]||null; }
+  colBlocks(col){
+    if(col===this.SCHED){ const s=this.selSchedule(); return s?s.blocks:[]; }
+    const day=this.state.days[col]; const inst=this.activeInstance(day); return inst?inst.blocks:[];
+  }
+  mutateBlocks(col, fn){
+    this.setState(s=>{
+      if(s.mode==='schedule'){
+        return {schedules:s.schedules.map(sc=>sc.id===s.selectedScheduleId?{...sc,blocks:fn(sc.blocks)}:sc)};
+      }
+      const days={...s.days}; let d=days[col];
+      if(!d){ const inst={id:this.uid(),name:'Plan A',blocks:[]}; d={activeId:inst.id,instances:[inst]}; }
+      let activeId=d.activeId, instances=d.instances;
+      if(!activeId||!instances.find(i=>i.id===activeId)){ if(instances.length){ activeId=instances[0].id; } else { const inst={id:this.uid(),name:'Plan A',blocks:[]}; instances=[inst]; activeId=inst.id; } }
+      instances=instances.map(i=>i.id===activeId?{...i,blocks:fn(i.blocks)}:i);
+      days[col]={activeId,instances};
+      return {days};
+    });
+  }
+  addBlock(col,b){ this.mutateBlocks(col, arr=>[...arr,b]); }
+  updateBlock(col,id,patch){ this.mutateBlocks(col, arr=>arr.map(x=>x.id===id?{...x,...patch}:x)); }
+  removeBlock(col,id){ this.mutateBlocks(col, arr=>arr.filter(x=>x.id!==id)); this.setState(s=>({selectedId:s.selectedId===id?null:s.selectedId})); }
+
+  minFromY(clientY){ if(!this.scrollEl) return this.DAY_START; const rect=this.scrollEl.getBoundingClientRect(); const headerH=this.headerEl?this.headerEl.offsetHeight:0; const y=clientY-rect.top+this.scrollEl.scrollTop-headerH-this.GRID_PAD; return this.clampMin(this.DAY_START + y/this.pxPerMin); }
+  colAt(clientX,clientY){ const el=document.elementFromPoint(clientX,clientY); const col=el&&el.closest&&el.closest('[data-datekey]'); return col?col.dataset.datekey:null; }
+
+  addWin(){ window.addEventListener('mousemove',this.onWinMove); window.addEventListener('mouseup',this.onWinUp); }
+  rmWin(){ window.removeEventListener('mousemove',this.onWinMove); window.removeEventListener('mouseup',this.onWinUp); }
+
+  onColMouseDown=(e)=>{
+    if(e.button!==0) return;
+    if(e.target.closest&&e.target.closest('[data-evt]')) return;
+    const col=e.currentTarget.dataset.datekey;
+    const m=this.snap(this.minFromY(e.clientY));
+    if(e.shiftKey && this.state.anchorPt && this.state.anchorPt.col===col){
+      const a=Math.min(this.state.anchorPt.min,m), b=Math.max(this.state.anchorPt.min,m);
+      this.createRange(col,a,b===a?a+this.state.defaultDuration:b); this.setState({anchorPt:null}); return;
+    }
+    this._downHadSel=!!(this.state.selectedId||this.state.multi.length);
+    this._drag={type:'create',col,startMin:m,moved:false};
+    this.setState({preview:{col,a:m,b:m}, segMenuOpen:false, quickMenu:null, editingId:null, multi:[]});
+    this.addWin();
+  };
+  onColDblClick=(e)=>{
+    const col=e.currentTarget.dataset.datekey; const raw=this.minFromY(e.clientY);
+    const hit=this.colBlocks(col).find(ev=>raw>=ev.start-1&&raw<=ev.end+1);
+    if(hit){ this._focusInline=true; this.setState({selectedId:hit.id,selectedCol:col,editingId:hit.id,anchorPt:null,quickMenu:null}); return; }
+    const m=this.snap(raw); this.createRange(col,m,this.clampMin(m+this.state.defaultDuration));
+  };
+  onColMouseMove=(e)=>{ if(this._drag) return; const col=e.currentTarget.dataset.datekey; const m=this.snap(this.minFromY(e.clientY)); if(this.state.hover&&this.state.hover.col===col&&this.state.hover.min===m) return; this.setState({hover:{col,min:m}}); };
+  onColMouseLeave=()=>{ if(!this._drag&&this.state.hover) this.setState({hover:null}); };
+
+  createRange(col,a,b){
+    if(b-a<5) b=a+5; b=this.clampMin(b);
+    const blocks=this.colBlocks(col);
+    const color=this.PALETTE[blocks.length%this.PALETTE.length];
+    const id=this.uid();
+    this.addBlock(col,{id,start:a,end:b,title:'',color});
+    this._focusInline=true;
+    this.setState({selectedId:id,selectedCol:col,editingId:id,hover:null,segMenuOpen:false,anchorPt:null,quickMenu:null});
+  }
+
+  onWinMove=(e)=>{
+    const d=this._drag; if(!d) return;
+    if(d.type==='create'){ const m=this.snap(this.minFromY(e.clientY)); if(m!==d.startMin) d.moved=true; this.setState({preview:{col:d.col,a:Math.min(d.startMin,m),b:Math.max(d.startMin,m)}}); }
+    else if(d.type==='move'){
+      const dur=d.dur; let start=this.snap(this.minFromY(e.clientY)-d.grab); start=Math.max(this.DAY_START,Math.min(this.DAY_END-dur,start));
+      let col=d.col;
+      if(this.state.mode==='calendar'&&this.state.view==='week'){ const tc=this.colAt(e.clientX,e.clientY); if(tc&&tc!==this.SCHED) col=tc; }
+      d.moved=true;
+      if(col!==d.col){ this.moveAcross(d.col,col,d.id,{start,end:start+dur}); d.col=col; }
+      else { this.updateBlock(col,d.id,{start,end:start+dur}); }
+    }
+    else if(d.type==='resize'){ const m=this.snap(this.minFromY(e.clientY)); if(d.edge==='bot'){ this.updateBlock(d.col,d.id,{end:this.clampMin(Math.max(d.start+5,m))}); } else { this.updateBlock(d.col,d.id,{start:this.clampMin(Math.min(d.end-5,m))}); } d.moved=true; }
+  };
+  onWinUp=()=>{
+    const d=this._drag; this._drag=null; this.rmWin(); if(!d) return;
+    if(d.type==='create'){ const p=this.state.preview; this.setState({preview:null}); if(d.moved&&p){ this.createRange(p.col,p.a,p.b); } else if(this._downHadSel){ this.setState({selectedId:null,multi:[],anchorPt:null,quickMenu:null,editingId:null}); } else { this.openQuick(d.col,d.startMin); } }
+    else { this.setState({dragId:null}); }
+  };
+
+  moveAcross(src,dst,id,patch){
+    this.setState(s=>{
+      const days={...s.days}; let blk=null;
+      const sd=days[src]; if(sd){ const inst=this.activeInstance(sd); if(inst){ blk=inst.blocks.find(b=>b.id===id); if(inst){ days[src]={...sd,instances:sd.instances.map(i=>i.id===inst.id?{...i,blocks:i.blocks.filter(b=>b.id!==id)}:i)}; } } }
+      if(!blk) return {};
+      const moved={...blk,...patch};
+      let dd=days[dst]; if(!dd){ const ni={id:this.uid(),name:'Plan A',blocks:[]}; dd={activeId:ni.id,instances:[ni]}; }
+      let activeId=dd.activeId,instances=dd.instances;
+      if(!activeId||!instances.find(i=>i.id===activeId)){ if(instances.length){activeId=instances[0].id;} else { const ni={id:this.uid(),name:'Plan A',blocks:[]}; instances=[ni]; activeId=ni.id; } }
+      instances=instances.map(i=>i.id===activeId?{...i,blocks:[...i.blocks,moved]}:i);
+      days[dst]={activeId,instances};
+      return {days,selectedCol:dst};
+    });
+  }
+
+  onEventMouseDown=(e)=>{
+    if(e.button!==0) return; e.stopPropagation();
+    const id=e.currentTarget.dataset.evt; const col=e.currentTarget.closest('[data-datekey]').dataset.datekey;
+    if(e.metaKey||e.ctrlKey){
+      this.setState(s=>{ const has=s.multi.some(m=>m.id===id&&m.col===col); const base=s.multi.length?s.multi:(s.selectedId?[{col:s.selectedCol,id:s.selectedId}]:[]); const multi=has?base.filter(m=>!(m.id===id&&m.col===col)):[...base.filter(m=>!(m.id===id&&m.col===col)),{col,id}]; return {multi, selectedId:id, selectedCol:col, editingId:null, anchorPt:null, quickMenu:null, segMenuOpen:false}; });
+      return;
+    }
+    const ev=this.colBlocks(col).find(x=>x.id===id); if(!ev) return;
+    if(this.state.editingId===id) return;
+    const m=this.minFromY(e.clientY);
+    this._drag={type:'move',id,col,grab:m-ev.start,dur:ev.end-ev.start,moved:false};
+    this.setState({selectedId:id,selectedCol:col,dragId:id,multi:[],anchorPt:null,segMenuOpen:false,quickMenu:null,editingId:null});
+    this.addWin();
+  };
+  onEventDblClick=(e)=>{ e.stopPropagation(); const id=e.currentTarget.dataset.evt; const col=e.currentTarget.closest('[data-datekey]').dataset.datekey; this._focusInline=true; this.setState({selectedId:id,selectedCol:col,editingId:id}); };
+  onResize(edge,e){ e.stopPropagation(); const host=e.currentTarget.closest('[data-evt]'); if(!host) return; const id=host.dataset.evt; const col=host.closest('[data-datekey]').dataset.datekey; const ev=this.colBlocks(col).find(x=>x.id===id); if(!ev) return; this._drag={type:'resize',id,col,edge,start:ev.start,end:ev.end}; this.setState({selectedId:id,selectedCol:col,dragId:id,editingId:null}); this.addWin(); }
+  onResizeTop=(e)=>this.onResize('top',e);
+  onResizeBot=(e)=>this.onResize('bot',e);
+
+  onInlineInput=(e)=>{ if(this.state.editingId) this.updateBlock(this.state.selectedCol,this.state.editingId,{title:e.target.value}); };
+  onInlineKey=(e)=>{ if(e.key==='Enter'||e.key==='Escape'){ e.preventDefault(); this.setState({editingId:null}); } };
+  onInlineBlur=()=>this.setState({editingId:null});
+
+  openQuick(col,min){
+    let x=0,y=0; if(this.scrollEl){ const rect=this.scrollEl.getBoundingClientRect(); const headerH=this.headerEl?this.headerEl.offsetHeight:0; y=rect.top+headerH+this.GRID_PAD+(min-this.DAY_START)*this.pxPerMin-this.scrollEl.scrollTop;
+      const colEl=[...this.scrollEl.querySelectorAll('[data-datekey]')].find(el=>el.dataset.datekey===col); x=colEl?colEl.getBoundingClientRect().left+14:rect.left+80; }
+    this.setState({quickMenu:{col,min,x,y},anchorPt:{col,min},selectedId:null});
+  }
+  closeQuick=()=>this.setState({quickMenu:null,anchorPt:null});
+  onQuickPick=(e)=>{ const min=Number(e.currentTarget.dataset.min); const q=this.state.quickMenu; if(!q) return; this.createRange(q.col,q.min,this.clampMin(q.min+min)); };
+
+  onModeSchedules=()=>this.setState({mode:'schedule',selectedId:null,anchorPt:null,editingId:null,quickMenu:null});
+  onModeCalendar=()=>this.setState({mode:'calendar',selectedId:null,anchorPt:null,editingId:null,quickMenu:null});
+  onSetDay=()=>this.setState({view:'day'});
+  onSetWeek=()=>this.setState({view:'week'});
+  onToday=()=>this.setState({anchorDate:this.ymd(new Date())});
+  onPrev=()=>this.setState(s=>({anchorDate:this.ymd(this.addDays(this.parse(s.anchorDate),this.effView()==='week'?-7:-1))}));
+  onNext=()=>this.setState(s=>({anchorDate:this.ymd(this.addDays(this.parse(s.anchorDate),this.effView()==='week'?7:1))}));
+  onZoomIn=()=>this.setState(s=>({hourPx:Math.min(180,s.hourPx+16)}));
+  onZoomOut=()=>this.setState(s=>({hourPx:Math.max(48,s.hourPx-16)}));
+
+  // schedules (rail)
+  onSelectSchedule=(e)=>{ if(this._schedDragMoved){ this._schedDragMoved=false; return; } if(e.target.closest&&e.target.closest('[data-noselect]')) return; const id=e.currentTarget.dataset.sched; this.setState({selectedScheduleId:id,mode:'schedule',selectedId:null,anchorPt:null,editingId:null,quickMenu:null,railOpen:false,schedMenu:null}); };
+  onToggleSchedMenu=(e)=>{ e.stopPropagation(); const id=e.currentTarget.dataset.sched; this.setState(s=>({schedMenu:s.schedMenu===id?null:id})); };
+  closeSchedMenu=()=>this.setState({schedMenu:null});
+  onPickSchedColor=(e)=>{ e.stopPropagation(); const id=e.currentTarget.dataset.sched; const hex=e.currentTarget.dataset.color; this.setState(s=>({schedules:s.schedules.map(x=>x.id===id?{...x,color:hex}:x)})); };
+  onNewSchedule=()=>{ const n=this.state.schedules.length; const id=this.uid(); const names=this.state.schedules.map(s=>s.name); let name='Schedule '+(n+1),k=n+1; while(names.indexOf(name)>=0){k++;name='Schedule '+k;} this.setState(s=>({schedules:[...s.schedules,{id,name,blocks:[]}],selectedScheduleId:id,mode:'schedule',selectedId:null})); };
+
+  // --- folders ---
+  onNewFolder=()=>{ const id=this.uid(); const names=this.state.folders.map(f=>f.name); let name='New folder',k=1; while(names.indexOf(name)>=0){ k++; name='New folder '+k; } this._folderRenameFocus=true; this.setState(s=>({folders:[...s.folders,{id,name,collapsed:false}], renameFolderId:id})); };
+  onToggleFolder=(e)=>{ e.stopPropagation(); const id=e.currentTarget.dataset.folder; this.setState(s=>({folders:s.folders.map(f=>f.id===id?{...f,collapsed:!f.collapsed}:f)})); };
+  onDeleteFolder=(e)=>{ e.stopPropagation(); const id=e.currentTarget.dataset.folder; const f=this.state.folders.find(x=>x.id===id); this.setState(s=>({folders:s.folders.filter(f=>f.id!==id), schedules:s.schedules.map(x=>x.folderId===id?{...x,folderId:null}:x), folderMenu:null})); this.showToast('Deleted folder “'+(f?f.name:'')+'”',true); };
+  onStartRenameFolder=(e)=>{ e.stopPropagation(); this._folderRenameFocus=true; this.setState({renameFolderId:e.currentTarget.dataset.folder}); };
+  onRenameFolderInput=(e)=>{ const v=e.target.value; this.setState(s=>({folders:s.folders.map(f=>f.id===s.renameFolderId?{...f,name:v}:f)})); };
+  onRenameFolderDone=()=>this.setState({renameFolderId:null});
+  onRenameFolderKey=(e)=>{ if(e.key==='Enter'){ e.target.blur(); } else if(e.key==='Escape'){ this.setState({renameFolderId:null}); } };
+  setFolderRenameRef=(el)=>{ if(el&&this._folderRenameFocus){ this._folderRenameFocus=false; requestAnimationFrame(()=>{ try{ el.focus(); el.select&&el.select(); }catch(e){} }); } };
+  onToggleFolderMenu=(e)=>{ e.stopPropagation(); const id=e.currentTarget.dataset.sched; this.setState(s=>({folderMenu:s.folderMenu===id?null:id})); };
+  closeFolderMenu=()=>this.setState({folderMenu:null});
+  onMoveToFolder=(e)=>{ e.stopPropagation(); const id=e.currentTarget.dataset.sched; const fid=e.currentTarget.dataset.folder||null;
+    this.setState(s=>{ const me={...s.schedules.find(x=>x.id===id), folderId:fid}; let arr=s.schedules.filter(x=>x.id!==id);
+      let insertAt=arr.length; if(fid){ let last=-1; arr.forEach((x,i)=>{ if((x.folderId||null)===fid) last=i; }); insertAt=last>=0?last+1:arr.length; }
+      arr.splice(insertAt,0,me); return {schedules:arr, folderMenu:null, schedMenu:null}; }); };
+  moveScheduleInGroup(id,dir){ this.setState(s=>{ const arr=[...s.schedules]; const me=arr.find(x=>x.id===id); if(!me) return {}; const fid=me.folderId||null;
+      const groupIdx=arr.map((x,i)=>i).filter(i=>(arr[i].folderId||null)===fid); const pos=groupIdx.indexOf(arr.indexOf(me)); const t=pos+dir;
+      if(t<0||t>=groupIdx.length) return {}; const a=groupIdx[pos], b=groupIdx[t]; const tmp=arr[a]; arr[a]=arr[b]; arr[b]=tmp; return {schedules:arr}; }); }
+  onMoveSchedUp=(e)=>{ e.stopPropagation(); this.moveScheduleInGroup(e.currentTarget.dataset.sched,-1); };
+  onMoveSchedDown=(e)=>{ e.stopPropagation(); this.moveScheduleInGroup(e.currentTarget.dataset.sched,1); };
+
+  // --- desktop drag-and-drop for the rail ---
+  setRailListRef=(el)=>{ this.railListEl=el; };
+  dragHit(x,y){ const el=document.elementFromPoint(x,y); if(!el||!el.closest) return {}; const hdr=el.closest('[data-folderhdr]'); if(hdr) return {folder:hdr.dataset.folderhdr}; const card=el.closest('[data-schedid]'); if(card){ const r=card.getBoundingClientRect(); return {card:card.dataset.schedid, before:y<r.top+r.height/2}; } return {}; }
+  onSchedDragStart=(e)=>{ e.stopPropagation(); e.preventDefault(); const id=e.currentTarget.dataset.sched; this._schedDragMoved=false; this.setState({schedDrag:{id,overFolder:null,overId:null,before:false}}); window.addEventListener('mousemove',this.onSchedDragMove); window.addEventListener('mouseup',this.onSchedDragEnd); };
+  onSchedDragMove=(e)=>{ const d=this.state.schedDrag; if(!d) return; this._schedDragMoved=true; const h=this.dragHit(e.clientX,e.clientY); const overFolder=h.folder||null; const overId=(h.card&&h.card!==d.id)?h.card:null; const before=!!h.before; if(d.overFolder!==overFolder||d.overId!==overId||d.before!==before) this.setState({schedDrag:{id:d.id,overFolder,overId,before}}); };
+  onSchedDragEnd=(e)=>{ window.removeEventListener('mousemove',this.onSchedDragMove); window.removeEventListener('mouseup',this.onSchedDragEnd); const d=this.state.schedDrag; this.setState({schedDrag:null}); if(!d){ return; } if(!this._schedDragMoved) return; const h=this.dragHit(e.clientX,e.clientY);
+    if(h.folder){ this.placeInFolder(d.id,h.folder); }
+    else if(h.card&&h.card!==d.id){ const tgt=this.state.schedules.find(x=>x.id===h.card); this.placeAdjacent(d.id,h.card,h.before,tgt?(tgt.folderId||null):null); } };
+  placeInFolder(id,fid){ this.setState(s=>{ const me={...s.schedules.find(x=>x.id===id),folderId:fid||null}; const arr=s.schedules.filter(x=>x.id!==id); let last=-1; arr.forEach((x,i)=>{ if((x.folderId||null)===(fid||null)) last=i; }); arr.splice(last>=0?last+1:arr.length,0,me); return {schedules:arr}; }); }
+  placeAdjacent(id,targetId,before,fid){ this.setState(s=>{ const me={...s.schedules.find(x=>x.id===id),folderId:fid||null}; const arr=s.schedules.filter(x=>x.id!==id); const ti=arr.findIndex(x=>x.id===targetId); if(ti<0){ arr.push(me); return {schedules:arr}; } arr.splice(before?ti:ti+1,0,me); return {schedules:arr}; }); }
+  onDuplicateSchedule=(e)=>{ e.stopPropagation(); const id=e.currentTarget.dataset.sched; this.setState(s=>{ const src=s.schedules.find(d=>d.id===id); const names=s.schedules.map(d=>d.name); const root=src.name.replace(/ copy( \d+)?$/,''); let name=root+' copy',n=2; while(names.indexOf(name)>=0){name=root+' copy '+n;n++;} const nid=this.uid(); const copy={id:nid,name,blocks:src.blocks.map(b=>({...b,id:this.uid()}))}; const idx=s.schedules.findIndex(d=>d.id===id); const arr=[...s.schedules]; arr.splice(idx+1,0,copy); return {schedules:arr,selectedScheduleId:nid,mode:'schedule',selectedId:null,schedMenu:null}; }); };
+  onDeleteSchedule=(e)=>{ e.stopPropagation(); const id=e.currentTarget.dataset.sched; const sc=this.state.schedules.find(d=>d.id===id); const last=this.state.schedules.length<=1; this.setState(s=>{ if(s.schedules.length<=1) return {schedules:s.schedules.map(d=>d.id===id?{...d,blocks:[]}:d),selectedId:null,schedMenu:null}; const arr=s.schedules.filter(d=>d.id!==id); const sel=s.selectedScheduleId===id?arr[0].id:s.selectedScheduleId; return {schedules:arr,selectedScheduleId:sel,selectedId:null,schedMenu:null}; }); this.showToast((last?'Cleared “':'Deleted “')+(sc?sc.name:'')+'”',true); };
+  onStartRename=(e)=>{ e.stopPropagation(); this._renameFocus=true; this.setState({renameId:e.currentTarget.dataset.sched,schedMenu:null}); };
+  onStartRenameTop=()=>{ const sch=this.selSchedule(); if(!sch) return; this._topRenameFocus=true; this.setState({renameId:sch.id}); };
+  setTopRenameRef=(el)=>{ if(el&&this._topRenameFocus){ this._topRenameFocus=false; requestAnimationFrame(()=>{ try{ el.focus(); el.select&&el.select(); }catch(e){} }); } };
+  onRenameInput=(e)=>{ const v=e.target.value; const id=this.state.renameId; this.setState(s=>({schedules:s.schedules.map(d=>d.id===id?{...d,name:v}:d)})); };
+  onRenameDone=()=>this.setState({renameId:null});
+  onRenameKey=(e)=>{ if(e.key==='Enter'||e.key==='Escape'){ e.target.blur(); } };
+
+  // instances (calendar day plans)
+  onSwitchInstance=(e)=>{ e.stopPropagation(); const col=e.currentTarget.dataset.col, inst=e.currentTarget.dataset.inst; this.setState(s=>{ const d=s.days[col]; if(!d) return {}; return {days:{...s.days,[col]:{...d,activeId:inst}},selectedId:null,editingId:null}; }); };
+  onAddInstance=(e)=>{ e.stopPropagation(); const col=e.currentTarget.dataset.col; this.setState(s=>{ const d=s.days[col]||{activeId:null,instances:[]}; const letters='ABCDEFGHIJ'; const name='Plan '+(letters[d.instances.length]||(d.instances.length+1)); const inst={id:this.uid(),name,blocks:[]}; return {days:{...s.days,[col]:{activeId:inst.id,instances:[...d.instances,inst]}},selectedId:null,editingId:null}; }); };
+  onDeleteInstance=(e)=>{ e.stopPropagation(); const col=e.currentTarget.dataset.col, inst=e.currentTarget.dataset.inst; this.setState(s=>{ const d=s.days[col]; if(!d) return {}; const instances=d.instances.filter(i=>i.id!==inst); let activeId=d.activeId; if(activeId===inst) activeId=instances.length?instances[0].id:null; const days={...s.days}; if(instances.length) days[col]={activeId,instances}; else delete days[col]; return {days,selectedId:null}; }); };
+
+  // segments
+  onToggleSegMenu=(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.setState(s=>({segMenuOpen:!s.segMenuOpen,segEdit:false})); };
+  closeSegMenu=()=>this.setState({segMenuOpen:false,segEdit:false});
+  onToggleSegEdit=(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.setState(s=>({segEdit:!s.segEdit})); };
+  onSegBtn=(e)=>{ if(this.state.segEdit) this.onSetDefault(e); else this.onAddSegment(e); };
+  onAddSegment=(e)=>{
+    const min=Number(e.currentTarget.dataset.min);
+    this.appendBlock(min);
+    this.setState({segMenuOpen:false});
+  };
+  onNewDurInput=(e)=>this.setState({newDur:e.target.value});
+  onAddDuration=()=>{ const v=parseInt(this.state.newDur,10); if(!v||v<1||v>720){ this.setState({newDur:''}); return; } this.setState(s=> s.segments.includes(v)?{newDur:''}:{segments:[...s.segments,v].sort((a,b)=>a-b),newDur:''}); };
+  onRemoveDuration=(e)=>{ e.stopPropagation(); const v=Number(e.currentTarget.dataset.min); this.setState(s=>({segments:s.segments.filter(x=>x!==v)})); };
+  onSetDefault=(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); const v=Number(e.currentTarget.dataset.min); this.setState({defaultDuration:v}); };
+
+  // inspector
+  selBlock(){ return this.colBlocks(this.state.selectedCol).find(e=>e.id===this.state.selectedId); }
+  onTitleChange=(e)=>{ if(this.state.selectedId) this.updateBlock(this.state.selectedCol,this.state.selectedId,{title:e.target.value}); };
+  onApplyDuration=(e)=>{ const min=Number(e.currentTarget.dataset.min); const ev=this.selBlock(); if(!ev) return; let start=ev.start,end=start+min; if(end>this.DAY_END){ end=this.DAY_END; start=Math.max(this.DAY_START,end-min); } this.updateBlock(this.state.selectedCol,ev.id,{start,end}); };
+  onColor=(e)=>{ const hex=e.currentTarget.dataset.color; if(this.state.selectedId) this.updateBlock(this.state.selectedCol,this.state.selectedId,{color:hex}); };
+  onNudge=(e)=>{ const dir=Number(e.currentTarget.dataset.dir); const ev=this.selBlock(); if(!ev) return; const dur=ev.end-ev.start; const step=this.snapStep(); let ns=ev.start+dir*step; ns=Math.max(this.DAY_START,Math.min(this.DAY_END-dur,ns)); this.updateBlock(this.state.selectedCol,ev.id,{start:ns,end:ns+dur}); };
+  onDeleteEvent=()=>{ if(this.state.selectedId) this.removeBlock(this.state.selectedCol,this.state.selectedId); };
+  onCloseInspector=()=>this.setState({selectedId:null,editingId:null,copyMenuOpen:false});
+
+  copySel=()=>{ const items=this.state.multi.length?this.state.multi:(this.state.selectedId?[{col:this.state.selectedCol,id:this.state.selectedId}]:[]); if(!items.length) return; const blocks=[]; items.forEach(({col,id})=>{ const b=this.colBlocks(col).find(x=>x.id===id); if(b) blocks.push({start:b.start,end:b.end,title:b.title,color:b.color}); }); if(blocks.length) this.setState({clipboard:blocks.sort((a,b)=>a.start-b.start)}); };
+  pasteClip=()=>{ const clip=this.state.clipboard; if(!clip||!clip.length) return; const col=(this.state.hover&&this.state.hover.col)?this.state.hover.col:(this.state.mode==='schedule'?this.SCHED:this.state.anchorDate); const items=clip.map(b=>({id:this.uid(),start:b.start,end:b.end,title:b.title,color:b.color})); this.mutateBlocks(col,arr=>[...arr,...items]); this.setState({multi:items.map(n=>({col,id:n.id})), selectedId:items[items.length-1].id, selectedCol:col, editingId:null}); };
+  onClearMulti=()=>this.setState({multi:[]});
+  deleteSel=()=>{ const items=this.state.multi.length?this.state.multi.slice():(this.state.selectedId?[{col:this.state.selectedCol,id:this.state.selectedId}]:[]); if(!items.length) return; const byCol={}; items.forEach(({col,id})=>{ (byCol[col]=byCol[col]||[]).push(id); }); Object.keys(byCol).forEach(col=>{ this.mutateBlocks(col, arr=>arr.filter(b=>byCol[col].indexOf(b.id)<0)); }); this.setState({multi:[], selectedId:null, editingId:null}); this.showToast('Deleted '+items.length+' block'+(items.length===1?'':'s'),true); };
+  onToggleCopyMenu=(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.setState(s=>{ if(s.copyMenuOpen) return {copyMenuOpen:false}; return {copyMenuOpen:true,copyWeekBase:s.selectedCol&&s.selectedCol!==this.SCHED?s.selectedCol:s.anchorDate}; }); };
+  closeCopyMenu=()=>this.setState({copyMenuOpen:false});
+  onDuplicateAfter=()=>{ const ev=this.selBlock(); if(!ev) return; const dur=ev.end-ev.start; const nid=this.uid(); let ns=this.clampMin(ev.end); if(ns+dur>this.DAY_END) ns=Math.max(this.DAY_START,this.DAY_END-dur); this.addBlock(this.state.selectedCol,{...ev,id:nid,start:ns,end:ns+dur}); this.setState({selectedId:nid,copyMenuOpen:false}); };
+  onCopyWeekShift=(e)=>{ e.stopPropagation(); const dir=Number(e.currentTarget.dataset.dir); this.setState(s=>({copyWeekBase:this.ymd(this.addDays(this.parse(s.copyWeekBase||s.anchorDate),7*dir))})); };
+  onCopyToDay=(e)=>{ e.stopPropagation(); const dk=e.currentTarget.dataset.datekey; const ev=this.selBlock(); if(!ev) return; const nid=this.uid();
+    if(dk===this.state.selectedCol){ const dur=ev.end-ev.start; let ns=this.clampMin(ev.end); if(ns+dur>this.DAY_END) ns=Math.max(this.DAY_START,this.DAY_END-dur); this.addBlock(dk,{...ev,id:nid,start:ns,end:ns+dur}); this.setState({selectedId:nid,selectedCol:dk,copyMenuOpen:false}); }
+    else { this.addBlock(dk,{...ev,id:nid}); this.setState({selectedId:nid,selectedCol:dk,copyMenuOpen:false,anchorDate:dk}); }
+  };
+
+  // assign
+  onOpenAssignToolbar=()=>{ this.openAssign(this.state.selectedScheduleId); };
+  onAssignCard=(e)=>{ e.stopPropagation(); this.setState({schedMenu:null}); this.openAssign(e.currentTarget.dataset.sched); };
+  openAssign(scheduleId){ this.setState(s=>({assign:{scheduleId,weekBase:s.anchorDate,picked:[]},segMenuOpen:false})); }
+  closeAssign=()=>this.setState({assign:null});
+  onAssignWeekShift=(e)=>{ e.stopPropagation(); const dir=Number(e.currentTarget.dataset.dir); this.setState(s=>({assign:{...s.assign,weekBase:this.ymd(this.addDays(this.parse(s.assign.weekBase),7*dir))}})); };
+  onToggleAssignDay=(e)=>{ const dk=e.currentTarget.dataset.datekey; this.setState(s=>{ const p=s.assign.picked; const np=p.includes(dk)?p.filter(x=>x!==dk):[...p,dk]; return {assign:{...s.assign,picked:np}}; }); };
+  weekDaysOf(base){ const startSun=this.ws()==='Sunday'; const b=this.parse(base); const off=startSun?b.getDay():((b.getDay()+6)%7); const first=this.addDays(b,-off); const out=[]; for(let i=0;i<7;i++) out.push(this.ymd(this.addDays(first,i))); return out; }
+  onAssignWeekdays=()=>{ this.setState(s=>{ const days=this.weekDaysOf(s.assign.weekBase); const startSun=this.ws()==='Sunday'; const wd=days.filter(dk=>{ const g=this.parse(dk).getDay(); return g>=1&&g<=5; }); return {assign:{...s.assign,picked:wd}}; }); };
+  onAssignClearPick=()=>this.setState(s=>({assign:{...s.assign,picked:[]}}));
+  onConfirmAssign=()=>{
+    const a=this.state.assign; if(!a||!a.picked.length) return;
+    const sch=this.state.schedules.find(s=>s.id===a.scheduleId); if(!sch) return;
+    this.setState(s=>{ const days={...s.days}; a.picked.forEach(dk=>{ const d=days[dk]||{activeId:null,instances:[]}; const inst={id:this.uid(),name:sch.name,blocks:sch.blocks.map(b=>({...b,id:this.uid()}))}; days[dk]={activeId:inst.id,instances:[...d.instances,inst]}; }); return {days,assign:null,mode:'calendar',anchorDate:a.picked.slice().sort()[0],selectedId:null}; });
+  };
+
+  onKey=(e)=>{
+    const tag=document.activeElement&&document.activeElement.tagName; const typing=tag==='INPUT'||tag==='TEXTAREA';
+    const mod=e.metaKey||e.ctrlKey;
+    if(mod&&(e.key==='z'||e.key==='Z')){ e.preventDefault(); if(e.shiftKey) this.redo(); else this.undo(); return; }
+    if(mod&&(e.key==='y'||e.key==='Y')){ e.preventDefault(); this.redo(); return; }
+    if(mod&&(e.key==='c'||e.key==='C')&&!typing){ if(this.state.multi.length||this.state.selectedId){ e.preventDefault(); this.copySel(); } return; }
+    if(mod&&(e.key==='v'||e.key==='V')&&!typing){ if(this.state.clipboard){ e.preventDefault(); this.pasteClip(); } return; }
+    if(e.key==='Escape'){ if(typing){document.activeElement.blur();} this.setState({selectedId:null,anchorPt:null,segMenuOpen:false,renameId:null,quickMenu:null,editingId:null,copyMenuOpen:false,assign:null,multi:[]}); }
+    else if((e.key==='Delete'||e.key==='Backspace')&&!typing&&(this.state.multi.length||this.state.selectedId)){ e.preventDefault(); this.deleteSel(); }
+  };
+
+  fmt(min){ let h=Math.floor(min/60),m=min%60; if(this.tf()==='24-hour'){ return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); } const ap=h>=12?'PM':'AM'; let h12=h%12; if(h12===0)h12=12; return h12+':'+String(m).padStart(2,'0')+' '+ap; }
+  fmtShort(min){ let h=Math.floor(min/60); if(this.tf()==='24-hour'){ return String(h).padStart(2,'0')+':00'; } const ap=h>=12?'PM':'AM'; let h12=h%12; if(h12===0)h12=12; return h12+' '+ap; }
+  durLabel(mins){ if(mins<60) return mins+' min'; const h=Math.floor(mins/60),m=mins%60; return h+'h'+(m?' '+m+'m':''); }
+  hexA(hex,a){ const n=parseInt(hex.slice(1),16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
+
+  layout(events){
+    const evs=events.slice().sort((a,b)=>a.start-b.start||a.end-b.end);
+    const out={}; let cluster=[],clusterEnd=-1;
+    const flush=()=>{ const cols=[]; cluster.forEach(ev=>{ let placed=false; for(let i=0;i<cols.length;i++){ if(cols[i]<=ev.start){ cols[i]=ev.end; out[ev.id].lane=i; placed=true; break; } } if(!placed){ out[ev.id].lane=cols.length; cols.push(ev.end); } }); const n=cols.length; cluster.forEach(ev=>{ out[ev.id].cols=n; }); cluster=[]; clusterEnd=-1; };
+    evs.forEach(ev=>{ out[ev.id]={lane:0,cols:1}; if(cluster.length&&ev.start>=clusterEnd){ flush(); } cluster.push(ev); clusterEnd=Math.max(clusterEnd,ev.end); });
+    if(cluster.length) flush(); return out;
+  }
+
+  buildColumn(key, blocks, opts){
+    const S=this.state, ppm=this.pxPerMin;
+    const lay=this.layout(blocks);
+    const events=blocks.map(e=>{
+      const top=(e.start-this.DAY_START)*ppm, h=(e.end-e.start)*ppm;
+      const L=lay[e.id]||{lane:0,cols:1}; const wPct=100/L.cols;
+      const sel=e.id===S.selectedId&&key===S.selectedCol; const drg=e.id===S.dragId; const compact=h<34; const editing=e.id===S.editingId&&key===S.selectedCol;
+      const inMulti=S.multi.some(m=>m.id===e.id&&m.col===key);
+      return {
+        id:e.id,
+        style:{ position:'absolute', top:top+'px', height:Math.max(15,h)+'px', left:'calc('+(L.lane*wPct)+'% + 2px)', width:'calc('+wPct+'% - 4px)', background:this.hexA(e.color,(sel||inMulti)?0.22:0.13), borderLeft:'3px solid '+e.color, border:'1px solid '+this.hexA(e.color,(sel||inMulti)?0.9:0.32), borderRadius:'6px', cursor:drg?'grabbing':'grab', boxShadow:inMulti?'0 0 0 2px #0F6CBD, 0 2px 10px rgba(15,108,189,.28)':(sel?'0 4px 16px '+this.hexA(e.color,0.4):'none'), zIndex:sel?20:(inMulti?18:(drg?19:3)), overflow:'hidden', userSelect:'none', pointerEvents:drg?'none':'auto', transition:drg?'none':'box-shadow .12s' },
+        title:e.title, titleDisplay:e.title||'New block', minsLabel:this.durLabel(e.end-e.start), timeShort:this.fmt(e.start)+' – '+this.fmt(e.end),
+        titleStyle:{ fontSize:'12px', fontWeight:600, lineHeight:1.25, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', color:e.color, filter:'brightness(0.62)', minWidth:0 },
+        contentStyle:{ pointerEvents:'none', height:'100%', display:'flex', alignItems:compact?'center':'flex-start', gap:'8px', padding:compact?'0 7px':'4px 7px', overflow:'hidden' },
+        compactTimeStyle:{ flex:'none', marginLeft:'auto', fontSize:'11px', fontWeight:600, whiteSpace:'nowrap', color:this.hexA(e.color,0.85), filter:'brightness(0.72)', paddingTop:compact?'0':'1px' },
+        isEditing:editing, notEditing:!editing,
+        topHandleStyle:{ position:'absolute', top:'-2px', left:0, right:0, height:'7px', cursor:'ns-resize', pointerEvents:sel?'auto':'none', zIndex:5 },
+        botHandleStyle:{ position:'absolute', bottom:'-2px', left:0, right:0, height:'7px', cursor:'ns-resize', pointerEvents:sel?'auto':'none', zIndex:5 },
+      };
+    });
+    const lineAt=(min,color,dashed)=>({ position:'absolute', top:((min-this.DAY_START)*ppm)+'px', left:0, right:0, height:0, borderTop:'1px '+(dashed?'dashed':'solid')+' '+color, pointerEvents:'none', zIndex:8 });
+    const hover=(S.hover&&S.hover.col===key&&!this._drag)?{show:true,style:lineAt(S.hover.min,'#0F6CBD',true),label:this.fmt(S.hover.min)}:{show:false,style:{},label:''};
+    const anchor=(S.anchorPt&&S.anchorPt.col===key)?{show:true,style:lineAt(S.anchorPt.min,'#0F6CBD',false),label:this.fmt(S.anchorPt.min)}:{show:false,style:{},label:''};
+    let preview={show:false,style:{},label:''};
+    if(S.preview&&S.preview.col===key){ const a=S.preview.a,b=Math.max(S.preview.b,a+5); preview={show:true,label:this.durLabel(b-a),style:{ position:'absolute', top:((a-this.DAY_START)*ppm)+'px', height:((b-a)*ppm)+'px', left:'2px', right:'2px', background:this.hexA('#0F6CBD',0.16), border:'1.5px solid #0F6CBD', borderRadius:'6px', pointerEvents:'none', zIndex:9, fontSize:'11px', fontWeight:700, color:'#0F6CBD', padding:'2px 6px', overflow:'hidden' }}; }
+    const now=new Date(); const nowMin=now.getHours()*60+now.getMinutes();
+    const nowShow=opts.showNow&&nowMin>=this.DAY_START&&nowMin<=this.DAY_END;
+    const nowV={ show:nowShow, style: nowShow?{ position:'absolute', top:((nowMin-this.DAY_START)*ppm)+'px', left:0, right:0, height:0, borderTop:'2px solid #C50F1F', zIndex:10, pointerEvents:'none' }:{} };
+    return { key, events, hover, anchor, preview, now:nowV, colStyle:{ flex:'1 1 0', minWidth:0, position:'relative', borderRight:'1px solid #f1efed', userSelect:'none', backgroundColor:opts.bg||'#fff', backgroundImage:'repeating-linear-gradient(to bottom, #e6e3e0 0, #e6e3e0 1px, transparent 1px, transparent '+S.hourPx+'px), repeating-linear-gradient(to bottom, #f4f2f0 0, #f4f2f0 1px, transparent 1px, transparent '+(S.hourPx/2)+'px)' } };
+  }
+
+  renderVals(){
+    const S=this.state, ppm=this.pxPerMin;
+    const gridHeight=(this.DAY_END-this.DAY_START)*ppm;
+    const todayKey=this.ymd(new Date());
+    const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const WDfull=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const MONfull=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const startSun=this.ws()==='Sunday';
+    const isSchedule=S.mode==='schedule', isCalendar=S.mode==='calendar';
+    const mob=this._mobile, view=this.effView(), railOpen=mob&&S.railOpen;
+    const axisW=mob?44:64;
+
+    // columns
+    let cols=[];
+    if(isSchedule){
+      const sch=this.selSchedule();
+      const c=this.buildColumn(this.SCHED, sch?sch.blocks:[], {showNow:true,bg:'#fcfcfb'});
+      const booked=(sch?sch.blocks:[]).reduce((a,e)=>a+(e.end-e.start),0);
+      c.headStyle={ flex:'1 1 0', minWidth:0, padding:'11px 14px', display:'flex', alignItems:'center', justifyContent:'flex-start' };
+      c.head={ isSchedule:true, isDate:false, schedLabel:'Timeline', schedSub:'· build once, assign to any dates' };
+      cols=[c];
+    } else {
+      let dayKeys;
+      if(view==='week') dayKeys=this.weekDaysOf(S.anchorDate); else dayKeys=[S.anchorDate];
+      cols=dayKeys.map((dk,idx)=>{
+        const dt=this.parse(dk); const isToday=dk===todayKey;
+        const day=S.days[dk]; const inst=this.activeInstance(day);
+        const blocks=inst?inst.blocks:[];
+        const c=this.buildColumn(dk, blocks, {showNow:isToday,bg:isToday?'#fcfbfa':'#fff'});
+        const booked=blocks.reduce((a,e)=>a+(e.end-e.start),0);
+        const instCount=day?day.instances.length:0;
+        const tabs=(day?day.instances:[]).map(i=>({ id:i.id, col:dk, name:i.name, canDelete:instCount>1,
+          style:{ display:'inline-flex', alignItems:'center', gap:'3px', padding:'2px 8px', borderRadius:'12px', fontSize:'11px', fontWeight:700, cursor:'pointer', border:'1px solid '+(i.id===day.activeId?'#0F6CBD':'#e1dfdd'), background:i.id===day.activeId?this.hexA('#0F6CBD',0.1):'#fff', color:i.id===day.activeId?'#0F6CBD':'#9b9896', maxWidth:'120px' } }));
+        c.headStyle={ flex:'1 1 0', minWidth:0, padding:'8px 10px', borderLeft: idx===0?'none':'1px solid #f1efed' };
+        c.head={ isSchedule:false, isDate:true, col:dk, dayNum:String(dt.getDate()), weekday:WD[dt.getDay()], booked:this.durLabel(booked), bookedShow:booked>0,
+          numStyle:{ display:'inline-flex', alignItems:'center', justifyContent:'center', minWidth:'28px', height:'28px', padding:'0 4px', borderRadius:'14px', fontSize:'15px', fontWeight:700, background:isToday?'#0F6CBD':'transparent', color:isToday?'#fff':'#242424', flex:'none' },
+          wdStyle:{ fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'.03em', color:isToday?'#0F6CBD':'#616161' }, tabs };
+        return c;
+      });
+    }
+
+    const axisHours=[];
+    for(let h=Math.ceil(this.DAY_START/60); h<=this.DAY_END/60; h++){ const min=h*60; axisHours.push({ label:this.fmtShort(min), style:{ position:'absolute', top:((min-this.DAY_START)*ppm)+'px', right:(mob?'6px':'9px'), transform:'translateY(-50%)', fontSize:(mob?'10px':'11px'), color:'#9b9896', fontWeight:600, whiteSpace:'nowrap' } }); }
+
+    let rangeLabel='';
+    if(isCalendar){ if(view==='day'){ const dt=this.parse(S.anchorDate); rangeLabel=WDfull[dt.getDay()]+', '+MONfull[dt.getMonth()]+' '+dt.getDate()+', '+dt.getFullYear(); } else { const dk=this.weekDaysOf(S.anchorDate); const a=this.parse(dk[0]),b=this.parse(dk[6]); rangeLabel=a.getMonth()===b.getMonth()?MONfull[a.getMonth()]+' '+a.getDate()+' – '+b.getDate()+', '+b.getFullYear():MON[a.getMonth()]+' '+a.getDate()+' – '+MON[b.getMonth()]+' '+b.getDate()+', '+b.getFullYear(); } }
+
+    const sch=this.selSchedule();
+    const schedBooked=sch?sch.blocks.reduce((a,e)=>a+(e.end-e.start),0):0;
+
+    const folders=S.folders||[];
+    const dragId=S.schedDrag&&S.schedDrag.id;
+    const schedCard=(d,indent)=>{ const active=d.id===S.selectedScheduleId&&isSchedule; const color=this.schedColor(d); const booked=d.blocks.reduce((a,e)=>a+(e.end-e.start),0);
+      const fid=d.folderId||null; const sibs=S.schedules.filter(x=>(x.folderId||null)===fid); const gpos=sibs.indexOf(d);
+      const moveTargets=[ ...folders.filter(f=>f.id!==fid).map(f=>({fid:f.id,label:'Move to '+f.name})), ...(fid?[{fid:'',label:'Remove from folder'}]:[]) ];
+      return { type:'sched', isFolder:false, isSched:true, id:d.id, name:d.name, isRenaming:d.id===S.renameId, notRenaming:d.id!==S.renameId,
+        cardStyle:{ marginLeft:indent?'15px':'0', padding:'11px 12px', borderRadius:'9px', cursor:'pointer', position:'relative', border:'1px solid '+(active?this.hexA(color,0.55):'#edebe9'), background:active?this.hexA(color,0.07):'#fff', transition:'background .1s,border-color .1s', opacity:d.id===dragId?0.4:1, boxShadow:(S.schedDrag&&S.schedDrag.overId===d.id)?(S.schedDrag.before?'inset 0 3px 0 #0F6CBD':'inset 0 -3px 0 #0F6CBD'):'none' },
+        dotStyle:{ width:'11px', height:'11px', borderRadius:'50%', background:color, flex:'none', boxShadow:'0 0 0 2px '+this.hexA(color,0.2) },
+        menuOpen:S.schedMenu===d.id, optRot:S.schedMenu===d.id?'rotate(180deg)':'rotate(0deg)',
+        swatches:this.PALETTE.map(hex=>({ hex, title:(S.colorLabels&&S.colorLabels[hex])||'Set color', style:{ width:'22px', height:'22px', borderRadius:'50%', background:hex, cursor:'pointer', flex:'none', border:hex===color?'2px solid #242424':'2px solid #fff', boxShadow:hex===color?'0 0 0 1px #242424':'0 0 0 1px #d2cfcc' } })),
+        showHandle:!mob, showMoveBtn:mob, showMove:mob, handleStyle:{ cursor:'grab', color:'#c2bfbc', flex:'none', lineHeight:1, padding:'0 1px', userSelect:'none' },
+        folderMenuOpen:S.folderMenu===d.id, moveTargets, hasMoveTargets:moveTargets.length>0,
+        canUp:gpos>0, canDown:gpos<sibs.length-1,
+        upStyle:{ flex:'1', padding:'6px 0', border:'1px solid #e1dfdd', background:'#fff', borderRadius:'6px', color:gpos>0?'#0F6CBD':'#cfccc9', fontSize:'12px', fontWeight:700, cursor:gpos>0?'pointer':'default' },
+        downStyle:{ flex:'1', padding:'6px 0', border:'1px solid #e1dfdd', background:'#fff', borderRadius:'6px', color:gpos<sibs.length-1?'#0F6CBD':'#cfccc9', fontSize:'12px', fontWeight:700, cursor:gpos<sibs.length-1?'pointer':'default' } };
+    };
+    const dropInto=S.schedDrag&&S.schedDrag.overFolder;
+    const railItems=[];
+    folders.forEach(f=>{ const kids=S.schedules.filter(x=>(x.folderId||null)===f.id);
+      railItems.push({ type:'folder', isFolder:true, isSched:false, id:f.id, name:f.name, count:String(kids.length),
+        collapsed:!!f.collapsed, caretRot:f.collapsed?'rotate(-90deg)':'rotate(0deg)', isRenamingF:f.id===S.renameFolderId, notRenamingF:f.id!==S.renameFolderId,
+        headerStyle:{ display:'flex', alignItems:'center', gap:'7px', padding:'7px 9px', borderRadius:'8px', cursor:'pointer', background:dropInto===f.id?this.hexA('#0F6CBD',0.12):'#f3f2f1', border:'1px solid '+(dropInto===f.id?'#0F6CBD':'transparent') } });
+      if(!f.collapsed) kids.forEach(d=>railItems.push(schedCard(d,true)));
+    });
+    S.schedules.filter(x=>!x.folderId).forEach(d=>railItems.push(schedCard(d,false)));
+
+    const segBtn=(on)=>({ padding:'5px 17px', border:'none', borderRadius:'6px', fontSize:'13px', fontWeight:600, cursor:'pointer', background:on?'#fff':'transparent', color:on?'#0F6CBD':'#616161', boxShadow:on?'0 1px 3px rgba(0,0,0,.13)':'none' });
+    const segList=S.segments.map(m=>({ min:m, label:String(m), showStar:m===S.defaultDuration,
+      btnStyle:{ width:'100%', padding:'9px 0', border:'1px solid '+(m===S.defaultDuration?'#0F6CBD':'#e1dfdd'), background:m===S.defaultDuration?this.hexA('#0F6CBD',0.08):'#fff', borderRadius:'7px', fontSize:'14px', fontWeight:700, color:'#242424', cursor:'pointer' },
+      quickStyle:{ width:'100%', padding:'8px 0', border:'1px solid '+(m===S.defaultDuration?'#0F6CBD':'#e1dfdd'), background:m===S.defaultDuration?this.hexA('#0F6CBD',0.08):'#fff', borderRadius:'6px', fontSize:'13px', fontWeight:700, color:'#242424', cursor:'pointer' } }));
+
+    const adt=this.parse(S.anchorDate);
+    const activeColLabel=isSchedule?(sch?sch.name:'this schedule'):(WD[adt.getDay()]+', '+MON[adt.getMonth()]+' '+adt.getDate());
+
+    // selection / inspector
+    const multiActive=S.multi.length>1;
+    const sel=this.selBlock();
+    let selVals={selExists:false};
+    let copyDays=[],copyWeekLabel='';
+    if(sel&&!multiActive){
+      selVals={ selExists:true, selTitle:sel.title, selTime:this.fmt(sel.start)+' – '+this.fmt(sel.end), selDur:this.durLabel(sel.end-sel.start),
+        dupBtnLabel:isCalendar?'Duplicate ▾':'Duplicate ▾',
+        colors:this.PALETTE.map(hex=>({ hex, title:(S.colorLabels&&S.colorLabels[hex])||'', style:{ width:'20px', height:'20px', borderRadius:'50%', background:hex, cursor:'pointer', border:hex===sel.color?'2px solid #242424':'2px solid #fff', boxShadow:'0 0 0 1px #d2cfcc' } })) };
+      if(isCalendar){ const cwBase=S.copyWeekBase||S.selectedCol||S.anchorDate; const dk=this.weekDaysOf(cwBase);
+        dk.forEach(d=>{ const dt=this.parse(d); const isSrc=d===S.selectedCol; const isToday=d===todayKey;
+          copyDays.push({ dateKey:d, wd:WDfull[dt.getDay()], sub:MON[dt.getMonth()]+' '+dt.getDate()+(isSrc?' · same day':(isToday?' · today':'')),
+            style:{ display:'flex', flexDirection:'column', gap:'1px', width:'100%', padding:'7px 11px', border:'1px solid '+(isSrc?'#c7d9ea':'#ececea'), background:isSrc?'#f3f9ff':'#fff', borderRadius:'8px', cursor:'pointer', textAlign:'left' },
+            wdStyle:{ fontSize:'13px', fontWeight:700, color:'#242424' }, subStyle:{ fontSize:'11px', fontWeight:600, color:isSrc?'#0F6CBD':'#9b9896' } }); });
+        const a=this.parse(dk[0]),b=this.parse(dk[6]); copyWeekLabel=a.getMonth()===b.getMonth()?MON[a.getMonth()]+' '+a.getDate()+'–'+b.getDate():MON[a.getMonth()]+' '+a.getDate()+' – '+MON[b.getMonth()]+' '+b.getDate();
+      }
+    }
+
+    // quick menu
+    const q=S.quickMenu;
+    let quickStyle={};
+    if(q){ const W=(typeof window!=='undefined')?window.innerWidth:1280, H=(typeof window!=='undefined')?window.innerHeight:800; let left=Math.min(q.x,W-220); left=Math.max(8,left); let top=Math.min(q.y,H-220); top=Math.max(64,top); quickStyle={ position:'fixed', left:left+'px', top:top+'px', zIndex:60, width:'208px', background:'#fff', border:'1px solid #e1dfdd', borderRadius:'11px', boxShadow:'0 14px 38px rgba(0,0,0,.2)', padding:'12px' }; }
+
+    // assign
+    const a=S.assign; let assignVals={assignOpen:false};
+    if(a){ const asch=S.schedules.find(s=>s.id===a.scheduleId); const color=this.schedColor(asch);
+      const dk=this.weekDaysOf(a.weekBase); const aa=this.parse(dk[0]),bb=this.parse(dk[6]);
+      const assignWeekLabel=aa.getMonth()===bb.getMonth()?MONfull[aa.getMonth()]+' '+aa.getDate()+'–'+bb.getDate():MON[aa.getMonth()]+' '+aa.getDate()+' – '+MON[bb.getMonth()]+' '+bb.getDate();
+      const assignDays=dk.map(d=>{ const dt=this.parse(d); const picked=a.picked.includes(d); const isToday=d===todayKey; const hasPlans=!!(S.days[d]&&S.days[d].instances.length);
+        return { dateKey:d, wd:WD[dt.getDay()], num:String(dt.getDate()), hasPlans,
+          style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'1px', padding:'8px 2px 6px', borderRadius:'9px', cursor:'pointer', border:'1.5px solid '+(picked?'#0F6CBD':'#ececea'), background:picked?this.hexA('#0F6CBD',0.1):'#fff' },
+          wdStyle:{ fontSize:'10px', fontWeight:700, textTransform:'uppercase', color:picked?'#0F6CBD':'#9b9896' },
+          numStyle:{ fontSize:'15px', fontWeight:700, color:picked?'#0F6CBD':(isToday?'#0F6CBD':'#242424') } }; });
+      const n=a.picked.length;
+      assignVals={ assignOpen:true, assignName:asch?asch.name:'', assignDotStyle:{ width:'12px', height:'12px', borderRadius:'50%', background:color, flex:'none' }, assignWeekLabel, assignDays,
+        assignConfirmLabel:n?('Assign to '+n+' day'+(n===1?'':'s')):'Pick days',
+        assignConfirmStyle:{ padding:'9px 17px', border:'none', borderRadius:'8px', fontSize:'13px', fontWeight:700, cursor:n?'pointer':'default', background:n?'#0F6CBD':'#e1dfdd', color:n?'#fff':'#9b9896' } };
+    }
+
+    const helpTitle=isSchedule?'Build a schedule':'Plan the day';
+    const helpLines=isSchedule?[
+      {t:'• Click a time, Shift-click another to span'},{t:'• Drag across times to draw a block'},{t:'• Double-click for a quick '+S.defaultDuration+'-min block'},{t:'• Then “Assign to days…” to drop it on dates'}
+    ]:[
+      {t:'• Each day can hold several plans — toggle with the tabs'},{t:'• ⌘/Ctrl-click blocks to multi-select, then ⌘C / ⌘V to copy across days'},{t:'• Drag blocks to move (across days in week view)'},{t:'• Assign a schedule from the list above'}
+    ];
+
+    const SY={saved:{t:'Saved',c:'#107c41',h:'Saved to the Studio'},saving:{t:'Saving…',c:'#caa53d',h:'Saving to the Studio'},offline:{t:'Offline',c:'#c4314b',h:'Server unreachable — kept locally, will sync when back'},local:{t:'Local',c:'#9b9896',h:'Local browser storage only (opened as a file)'}};
+    const sy=SY[this._sync]||SY.saving;
+
+    // responsive style bindings — phones collapse the schedules rail into a drawer,
+    // force single-day view, wrap the toolbar, and add a one-tap "+" button.
+    const topbarStyle = mob
+      ? { display:'flex', alignItems:'center', gap:'7px', rowGap:'7px', padding:'7px 10px', background:'#fff', borderBottom:'1px solid #edebe9', flex:'none', flexWrap:'wrap' }
+      : { display:'flex', alignItems:'center', gap:'13px', padding:'9px 16px', background:'#fff', borderBottom:'1px solid #edebe9', flex:'none' };
+    const railStyle = mob
+      ? { position:'fixed', left:0, top:0, bottom:0, width:'min(85vw,300px)', background:'#fff', borderRight:'1px solid #edebe9', display:'flex', flexDirection:'column', zIndex:80, boxShadow:railOpen?'0 14px 44px rgba(0,0,0,.34)':'none', transform:railOpen?'translateX(0)':'translateX(-110%)', transition:'transform .22s ease', pointerEvents:railOpen?'auto':'none' }
+      : { width:S.railW+'px', flex:'none', background:'#fff', borderRight:'1px solid #edebe9', display:'flex', flexDirection:'column', minHeight:0, position:'relative' };
+
+    // settings panel options
+    const segS=(on)=>({ border:'1px solid '+(on?'#0F6CBD':'#e1dfdd'), background:on?'#e8f1fb':'#fff', color:on?'#0F6CBD':'#444', borderRadius:'8px', padding:'7px 14px', fontSize:'12.5px', fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' });
+    const setS=S.settings;
+    const tfOpts=[{v:'12-hour',l:'12-hour'},{v:'24-hour',l:'24-hour'}].map(o=>({v:o.v,l:o.l,style:segS(this.tf()===o.v)}));
+    const wsOpts=[{v:'Monday',l:'Monday'},{v:'Sunday',l:'Sunday'}].map(o=>({v:o.v,l:o.l,style:segS(this.ws()===o.v)}));
+    const snapOpts=['5','10','15'].map(v=>({v,l:v+' min',style:segS(String(setS.snapMinutes)===v)}));
+    const durOpts=[5,10,15,30,60].map(v=>({v:String(v),l:(v<60?v+' min':'1 hr'),style:segS(S.defaultDuration===v)}));
+    const hourLabel=(h)=> h>=24?'12 AM':this.fmtShort(h*60);
+    const dayStartOpts=[]; for(let h=0;h<=12;h++) dayStartOpts.push({val:String(h*60),label:hourLabel(h),sel:setS.dayStart===h*60});
+    const dayEndOpts=[]; for(let h=12;h<=24;h++) dayEndOpts.push({val:String(h*60),label:hourLabel(h),sel:setS.dayEnd===h*60});
+    const colorRows=this.PALETTE.map(hex=>({ hex, label:(S.colorLabels[hex]||''), dotStyle:{ width:'20px', height:'20px', borderRadius:'50%', background:hex, flex:'none', boxShadow:'0 0 0 1px rgba(0,0,0,.12)' } }));
+
+    return {
+      isSchedule, isCalendar,
+      isMobile:mob, showViewToggle:isCalendar&&!mob, showRailToggle:mob,
+      railOpen, onToggleRail:this.onToggleRail, onCloseRail:this.onCloseRail,
+      showRailResize:!mob, onRailResizeStart:this.onRailResizeStart,
+      railOverlayShow:railOpen,
+      toastShow:!!S.toast, toastMsg:S.toast?S.toast.msg:'', toastUndoable:!!(S.toast&&S.toast.undoable), onToastUndo:this.onToastUndo, onToastDismiss:this.onToastDismiss,
+      tipsOpen:S.tipsOpen, onToggleTips:this.onToggleTips, closeTips:this.closeTips, onNextTip:this.onNextTip, onPrevTip:this.onPrevTip,
+      tipText:this.TIPS[S.tipIdx%this.TIPS.length], tipNum:(S.tipIdx%this.TIPS.length)+1, tipTotal:this.TIPS.length,
+      settingsOpen:S.settingsOpen, onOpenSettings:this.onOpenSettings, closeSettings:this.closeSettings,
+      tfOpts, wsOpts, snapOpts, durOpts, dayStartOpts, dayEndOpts, colorRows, dayStartVal:String(setS.dayStart), dayEndVal:String(setS.dayEnd),
+      onSetTimeFormat:this.onSetTimeFormat, onSetWeekStart:this.onSetWeekStart, onSetSnap:this.onSetSnap, onSetDefaultDur:this.onSetDefaultDur,
+      onSetDayStart:this.onSetDayStart, onSetDayEnd:this.onSetDayEnd, onSetColorLabel:this.onSetColorLabel,
+      onExport:this.onExport, onImportClick:this.onImportClick, onImportFile:this.onImportFile, setImportRef:this.setImportRef,
+      railOverlayStyle:{ position:'fixed', inset:0, background:'rgba(0,0,0,.38)', zIndex:79 },
+      railToggleStyle:{ width:'34px', height:'34px', flex:'none', border:'1px solid #d2cfcc', background:'#fff', borderRadius:'8px', fontSize:'16px', color:'#616161', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' },
+      topbarStyle, railStyle,
+      showFab:mob, onAddBlockFab:this.onAddBlockFab,
+      fabStyle:{ position:'fixed', right:'18px', bottom:'20px', width:'56px', height:'56px', borderRadius:'50%', border:'none', background:'#0F6CBD', color:'#fff', fontSize:'28px', lineHeight:1, boxShadow:'0 8px 22px rgba(15,108,189,.46)', cursor:'pointer', zIndex:60, padding:0 },
+      syncLabel:sy.t, syncTitle:sy.h,
+      syncDotStyle:{ width:'7px', height:'7px', borderRadius:'50%', background:sy.c, flex:'none' },
+      syncTextStyle:{ fontSize:'12px', fontWeight:600, color:sy.c, whiteSpace:'nowrap' },
+      onModeSchedules:this.onModeSchedules, onModeCalendar:this.onModeCalendar,
+      modeSchedStyle:segBtn(isSchedule), modeCalStyle:segBtn(isCalendar),
+      onUndo:this.undo, onRedo:this.redo,
+      undoBtnStyle:{ width:'27px', height:'27px', border:'none', background:this.histIdx>0?'#fff':'transparent', borderRadius:'6px', fontSize:'15px', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', color:this.histIdx>0?'#0F6CBD':'#c2bfbc', boxShadow:this.histIdx>0?'0 1px 2px rgba(0,0,0,.12)':'none', cursor:this.histIdx>0?'pointer':'default' },
+      redoBtnStyle:{ width:'27px', height:'27px', border:'none', background:this.histIdx<this.history.length-1?'#fff':'transparent', borderRadius:'6px', fontSize:'15px', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', color:this.histIdx<this.history.length-1?'#0F6CBD':'#c2bfbc', boxShadow:this.histIdx<this.history.length-1?'0 1px 2px rgba(0,0,0,.12)':'none', cursor:this.histIdx<this.history.length-1?'pointer':'default' },
+      rangeLabel, onPrev:this.onPrev, onNext:this.onNext, onToday:this.onToday,
+      schedName:sch?sch.name:'', schedMeta:(sch?sch.blocks.length:0)+' block'+((sch&&sch.blocks.length===1)?'':'s')+(schedBooked?' · '+this.durLabel(schedBooked):''),
+      schedDotStyle:{ width:'11px', height:'11px', borderRadius:'50%', background:this.schedColor(sch), flex:'none', boxShadow:'0 0 0 2px '+this.hexA(this.schedColor(sch),0.2) },
+      renamingTop:!!sch&&S.renameId===sch.id, notRenamingTop:!(!!sch&&S.renameId===sch.id),
+      onStartRenameTop:this.onStartRenameTop, setTopRenameRef:this.setTopRenameRef,
+      onSetDay:this.onSetDay, onSetWeek:this.onSetWeek, dayBtnStyle:segBtn(S.view==='day'), weekBtnStyle:segBtn(S.view==='week'),
+      onZoomIn:this.onZoomIn, onZoomOut:this.onZoomOut, onOpenAssignToolbar:this.onOpenAssignToolbar,
+      gridStyle:{ display:'flex', alignItems:'stretch', height:(gridHeight+2*this.GRID_PAD)+'px', minHeight:(gridHeight+2*this.GRID_PAD)+'px', paddingTop:this.GRID_PAD+'px', paddingBottom:this.GRID_PAD+'px', userSelect:'none' },
+      axisHours, axisSpacerStyle:{width:axisW+'px',flex:'none'}, axisColStyle:{width:axisW+'px',flex:'none',position:'relative'}, cols, setScrollRef:this.setScrollRef, setHeaderRef:this.setHeaderRef,
+      onColMouseDown:this.onColMouseDown, onColMouseMove:this.onColMouseMove, onColMouseLeave:this.onColMouseLeave, onColDblClick:this.onColDblClick,
+      onEventMouseDown:this.onEventMouseDown, onEventDblClick:this.onEventDblClick, onResizeTop:this.onResizeTop, onResizeBot:this.onResizeBot,
+      setInlineRef:this.setInlineRef, onInlineInput:this.onInlineInput, onInlineKey:this.onInlineKey, onInlineBlur:this.onInlineBlur, stopProp:this.stopProp,
+      onSwitchInstance:this.onSwitchInstance, onAddInstance:this.onAddInstance, onDeleteInstance:this.onDeleteInstance,
+      railItems, schedCount:S.schedules.length, onSelectSchedule:this.onSelectSchedule, onNewSchedule:this.onNewSchedule, onDuplicateSchedule:this.onDuplicateSchedule, onDeleteSchedule:this.onDeleteSchedule, onAssignCard:this.onAssignCard,
+      onStartRename:this.onStartRename, onRenameInput:this.onRenameInput, onRenameDone:this.onRenameDone, onRenameKey:this.onRenameKey, setRenameRef:this.setRenameRef,
+      hasFolders:folders.length>0, onNewFolder:this.onNewFolder, onToggleFolder:this.onToggleFolder, onDeleteFolder:this.onDeleteFolder,
+      onStartRenameFolder:this.onStartRenameFolder, onRenameFolderInput:this.onRenameFolderInput, onRenameFolderDone:this.onRenameFolderDone, onRenameFolderKey:this.onRenameFolderKey, setFolderRenameRef:this.setFolderRenameRef,
+      onToggleFolderMenu:this.onToggleFolderMenu, closeFolderMenu:this.closeFolderMenu, onMoveToFolder:this.onMoveToFolder, onMoveSchedUp:this.onMoveSchedUp, onMoveSchedDown:this.onMoveSchedDown,
+      onToggleSchedMenu:this.onToggleSchedMenu, closeSchedMenu:this.closeSchedMenu, onPickSchedColor:this.onPickSchedColor,
+      onSchedDragStart:this.onSchedDragStart, setRailListRef:this.setRailListRef,
+      helpTitle, helpLines,
+      segMenuOpen:S.segMenuOpen, segEdit:S.segEdit, notSegEdit:!S.segEdit, segEditLabel:S.segEdit?'Done':'Edit', onToggleSegMenu:this.onToggleSegMenu, closeSegMenu:this.closeSegMenu, onToggleSegEdit:this.onToggleSegEdit, onSegBtn:this.onSegBtn, segList, newDur:S.newDur, onNewDurInput:this.onNewDurInput, onAddDuration:this.onAddDuration, onRemoveDuration:this.onRemoveDuration, activeColLabel,
+      setTitleRef:this.setTitleRef, onTitleChange:this.onTitleChange, onApplyDuration:this.onApplyDuration, onColor:this.onColor, onDeleteEvent:this.onDeleteEvent, onCloseInspector:this.onCloseInspector, onNudge:this.onNudge,
+      onToggleCopyMenu:this.onToggleCopyMenu, copyMenuOpen:S.copyMenuOpen, closeCopyMenu:this.closeCopyMenu, onDuplicateAfter:this.onDuplicateAfter, onCopyWeekShift:this.onCopyWeekShift, onCopyToDay:this.onCopyToDay, copyDays, copyWeekLabel,
+      quickOpen:!!q, quickStyle, quickTime:q?this.fmt(q.min):'', onQuickPick:this.onQuickPick, closeQuick:this.closeQuick,
+      onAssignWeekShift:this.onAssignWeekShift, onToggleAssignDay:this.onToggleAssignDay, onAssignWeekdays:this.onAssignWeekdays, onAssignClearPick:this.onAssignClearPick, onConfirmAssign:this.onConfirmAssign, closeAssign:this.closeAssign,
+      multiActive, multiCount:S.multi.length, hasClipboard:!!S.clipboard, clipCount:S.clipboard?S.clipboard.length:0,
+      showMultiBar:multiActive||!!S.clipboard,
+      onCopySel:this.copySel, onPasteClip:this.pasteClip, onClearMulti:this.onClearMulti, onDeleteSel:this.deleteSel,
+      pasteHint:(S.mode==='schedule')?'this schedule':((view==='week')?'hovered day':'this day'),
+      ...assignVals, ...selVals,
+    };
+  }
+}
+</script>
+</body>
+</html>
