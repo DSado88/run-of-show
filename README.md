@@ -1,83 +1,57 @@
 # Run of Show
 
-A planner for people running too many lives at once — a demanding day job, a
-personal life, and a side project that only happens if you carve out the hours
-on purpose.
+A small scheduler for planning a packed day. I built it to juggle a full-time
+job, personal life, and time for a side project, the kind of week where the
+coding hours and the gym quietly disappear unless you put them on a plan first.
 
-Most calendars assume your week is unique. It usually isn't. Your mornings
-repeat. Your "deep work" block is the same every day you actually get one.
-Run of Show lets you **design a day once** — the work meetings, the gym, the
-school run, the two hours of coding — and then **drop that template onto real
-dates** whenever you need it. Build a "Heavy Meeting Day," a "Ship Day," a
-"Kids Have Practice" day, and stamp them onto the calendar instead of
-rebuilding from scratch every week.
+Most of my days repeat. So instead of rebuilding the week every Sunday, I make
+a few day templates once (a workday, a ship day, a day the kids have practice)
+and drop them onto real dates. You can tweak that day's copy without changing
+the template it came from.
 
-It's deliberately tiny and local-first: one HTML file plus a ~110-line Node
-server, no accounts, no dependencies, your data in a plain JSON file you own.
+It runs as one HTML file and a small Node server. No accounts, no build step,
+no dependencies. Your data is a JSON file you own.
 
-## Why you'd use it
+## What it does
 
-- **Protect time that doesn't protect itself.** Block the coding hours, the
-  workout, the family dinner — *before* the workday floods in and takes them.
-- **Stop rebuilding the same week.** Keep a handful of reusable day templates
-  and assign them to dates in a couple of clicks.
-- **See work, life, and side-project in one timeline.** Color-code by area
-  (meetings, focus, personal, exercise…) and read your real day at a glance.
-- **Plan variations without losing the original.** Each day can hold several
-  plans — an A/B "if the meeting moves" version — that you toggle between.
+- Lay out a day on a timeline. Click or drag to add blocks, then resize, move,
+  duplicate, or recolor them. Times snap to 5, 10, or 15 minutes.
+- Save those days as reusable templates and group them into folders.
+- Assign a template to today, this week, or any future dates. Editing the
+  assigned copy leaves the original alone.
+- Color-code blocks by area (work, focus, personal, exercise) and name the
+  colors, so the day is easy to read.
+- Day and week views. A day can hold more than one plan when you want to
+  compare options.
+- Undo and redo. Deleting shows a toast you can undo from. Keyboard shortcuts
+  for the common actions.
+- Settings for 12 or 24-hour time, week start, the hours shown, snap interval,
+  and default block length.
+- Export and import everything as a JSON file.
 
-## How it works in practice
+## Running it
 
-1. **Build a schedule** in the timeline: click or drag to lay down blocks
-   (a 9am standup, a 2-hour focus block, gym at 6), name and color them.
-2. **Keep a library** of these schedules, grouped into folders
-   (Workdays, Weekends, Travel…).
-3. **Assign to dates** — pick a schedule and drop it onto today, this week, or
-   any future days. Adjust the copy without touching the template.
-4. **Live in the calendar** — day and week views show what's actually planned,
-   with the current time marked.
-
-## Features
-
-- **Timeline editor** — click or drag to create blocks; resize, move,
-  duplicate, recolor. Snaps to 5/10/15-minute steps.
-- **Reusable day templates** — build once, assign to any dates.
-- **Color labels** — name your palette ("Meeting", "Focus", "Personal") so a
-  glance tells you where the time is going.
-- **Folders & a resizable rail** — organize a growing library of schedules.
-- **Day / week views** with multiple plans per day.
-- **Undo everywhere** — undo/redo, an undo toast on deletes, keyboard shortcuts.
-- **Settings** — 12/24-hour time, week start, day range, snap interval, default
-  block length.
-- **Your data, portable** — export/import everything as a JSON file.
-
-## Run it
-
-Requires [Node.js](https://nodejs.org) — there's nothing to install
-(zero dependencies).
+You need [Node](https://nodejs.org). There is nothing to install.
 
 ```bash
 PORT=4178 node server.js
 ```
 
-Open <http://localhost:4178>. Your schedule saves to `data/state.json` (created
-on first save) and is mirrored to the browser's local storage, so it keeps
-working offline. Run the server on a home machine and reach it from your phone
-and laptop to stay in sync.
+Open http://localhost:4178. Your data saves to `data/state.json` and also to the
+browser's local storage, so it keeps working offline. Run the server on a
+machine at home and you can reach it from your phone and laptop on the same
+network.
 
-Environment:
+`PORT` defaults to 4178 and `HOST` to 0.0.0.0.
 
-- `PORT` — port to listen on (default `4178`)
-- `HOST` — interface to bind (default `0.0.0.0`)
+## How it's built
 
-## Under the hood
-
-- `Run of Show.dc.html` — the entire app (UI + logic), on a small React-based
-  template runtime bundled in `support.js`.
-- `server.js` — a static-file + JSON-state server. `GET /api/state` returns the
-  saved document; `PUT /api/state` saves it with optimistic concurrency so a
-  stale tab can't clobber newer data.
+`Run of Show.dc.html` is the whole app, both the interface and the logic. It
+runs on a small React-based template runtime in `support.js`. `server.js`
+serves the files and stores the state: `GET /api/state` returns the saved
+document, and `PUT /api/state` writes it but refuses the write if the client is
+working from a stale version.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE).
