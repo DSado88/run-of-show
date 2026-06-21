@@ -1,13 +1,18 @@
 # Run of Show
 
-A small scheduler for planning a packed day. I built it to juggle a full-time
-job, personal life, and time for a side project, the kind of week where the
-coding hours and the gym quietly disappear unless you put them on a plan first.
+A scheduler for designing what a day should actually look like, hour by hour.
 
-Most of my days repeat. So instead of rebuilding the week every Sunday, I make
-a few day templates once (a workday, a ship day, a day the kids have practice)
-and drop them onto real dates. You can tweak that day's copy without changing
-the template it came from.
+I kept trying to map out detailed days in Outlook and Google Calendar, but those
+are built around meetings and invites, not laying out a whole day on purpose. I
+tried Apple Notes, then Notion, and neither felt right. So I built what I
+wanted: something that handles a fully planned day with the polish of a real
+calendar app, but made for planning instead of booking meetings.
+
+I built it in the margins of a full-time job and a second one, building
+[Orchid](https://orchidstudio.ai). Most of my days repeat, so rather than
+rebuilding the week every Sunday, I make a few day templates once (a workday, a
+ship day, a travel day) and drop them onto real dates. You can tweak that day's
+copy without changing the template it came from.
 
 It runs as one HTML file and a small Node server. No accounts, no build step,
 no dependencies. Your data is a JSON file you own.
