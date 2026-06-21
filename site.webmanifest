@@ -2,8 +2,8 @@
   "name": "Run of Show",
   "short_name": "Run of Show",
   "icons": [
-    { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
-    { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" }
+    { "src": "icons/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "icons/icon-512.png", "type": "image/png", "sizes": "512x512" }
   ],
   "theme_color": "#0c1733",
   "background_color": "#0c1733",
