@@ -6,8 +6,9 @@ invites, not for planning out a whole day. I tried doing it in Apple Notes, then
 Notion, and it just wasn't quite what I wanted. This came out feeling more
 premium, closer to Outlook than a notes app, but actually built for planning.
 
-I made it while working a full-time job and also building
-[Orchid](https://orchidstudio.ai), which is pretty much a second full-time job.
+Between a full-time job and building [Orchid](https://orchidstudio.ai), there's
+a lot to stay on top of, and I needed a real way to lay out my days when there's
+that much to tackle.
 
 Most of my days repeat, so instead of rebuilding the whole week every Sunday, I
 make a few day templates once (a workday, a ship day, a travel day) and drop
